@@ -198,7 +198,8 @@ def getPerson(id):
     person = Person.query.get(id)
     if not person:
         abort(400)
-    return jsonify({'name': person.name,
+    return jsonify({'personId' : person.id,
+        'name': person.name,
         'surname': person.surname,
         'sex': person.sex,
         'age': person.age,
@@ -231,7 +232,8 @@ def getArticle(id):
     article = Article.query.get(id)
     if not article:
         abort(400)
-    return jsonify({'name' : article.name,
+    return jsonify({'articleId' : article.id,
+        'name' : article.name,
         'theme' : article.theme,
         'label' : article.label,
         'description' : article.description,
@@ -240,8 +242,16 @@ def getArticle(id):
 
 
 @app.route('/api/articles/author/<int:id>', methods=['GET'])
-def getAuthorsArticles(id):
-    pass
+@auth.login_required
+#todo - access for author only
+def getAuthorsArticlesNames(id):
+    #todo - check if id == loggedPerson.if only if role == author
+    loggedPerson = g.person
+    if not id==loggedPerson.id:
+        abort(400)
+    articles = Article.query.filter_by(personId = id)
+    articlesNames = [{'articleId':a.id, 'name':a.name} for a in articles]
+    return jsonify(articlesNames)
 
 @app.route('/api/articles/attachments', methods=['POST'])
 def newAttachment():
