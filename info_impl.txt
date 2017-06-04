@@ -13,21 +13,21 @@ Raport z testów funkcjonalnych i jednostkowych.
 2. Przypadek Rejestracji Użytkownika - część backend
 
 2.1 Wystawione REST API:
-* /api/users [POST]
-** name - string
-** surname - string
-** sex - string
-** age - integer
-** academicDegree: {BSc, MSc, PhD, MD} - string
-** password - string
-** return STATUS
+* /api/people [POST]
+** name - string (required)
+** surname - string (not required, null by default)
+** sex - string (not required, null by default)
+** age - integer (not required, null by default)
+** academicDegree: {BSc, MSc, PhD, MD} - string (not required, null by default)
+** password - string (required)
+** <return>: json({name - string, personId - int})
 
-* /api/users/<int:id> [GET]
-** return username - string
+* /api/people/<int:id> [GET]
+** <return>: json({name - string, surname - string, sex - string, age - integer, academicDegree - string})
 
 * /api/token
-** <header> username and password
-** return session id - string
+** <header> personName and password
+** <return>: json(session id - string)
 
 * /api/resource
 ** dummy response - string
@@ -58,22 +58,29 @@ Wystawione REST API:
 ** label - string
 ** description - string
 ** text - string
-** attachment - BLOB[]
+** <return>: articleId - json(int)
 
-* /api/articles [GET]
+* /api/articles [GET] **optional**
 <redirect into list of articles of given user <<author>>>
 
-* /api/articles/author/<userId:Int> [GET]
-<userId must match userdId of logged user>
-** return [{id - int, name - string}, ... of articles assigned to given user]
-
-* /api/articles/<articleId:Int> [GET]
-<userId of article must match userId of logged user>
-** return {id - int, name - string, theme - string, label - string, description - string, text - string, attachments: [id - int, name - string]} of given article
+* /api/articles/attachments [POST]
+<userId of article (by articleId) must match userId of logged user>
+** file - BLOB
+** articleId - int
+** <return>: attachmentId - json(int)
 
 * /api/articles/attachments/<attachmentId:Int> [GET]
 <userId of article must match userId of logged user>
-** return FILE (BLOB)
+** <return>: FILE (BLOB)
+
+* /api/articles/author/<userId:Int> [GET]
+<userId must match userdId of logged user>
+** <return>: json ([{id - int, name - string}, ... of articles assigned to given user])
+
+* /api/articles/<articleId:Int> [GET]
+<userId of article must match userId of logged user>
+** <return>: json({id - int, name - string, theme - string, label - string, description - string, text - string, attachments: [id - int, name - string]} of given article)
+
 
 
 
