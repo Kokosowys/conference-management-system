@@ -1,0 +1,100 @@
+1. Wymagania dotyczące terminu
+
+Musimy się zadeklarować ile przypadków użycia:
+* Rejestracja
+* Dodawanie Scientific paper
+
+continous Integration (np. Jenkins); testy jednostkowe
+
+Prezentacja - pokazanie jak działa po implementacji.
+
+Raport z testów funkcjonalnych i jednostkowych.
+
+2. Przypadek Rejestracji Użytkownika - część backend
+
+Wystawione REST API:
+* /api/users [POST]
+** username - string
+** password - string
+** return STATUS
+
+* /api/users/<int:id> [GET]
+** return username - string
+
+* /api/token
+** <header> username and password
+** return session id - string
+
+* /api/resource
+** dummy response - string
+
+Funkcje:
+* dodawanie nowego użytkownika do bazy danych
+* generowanie czasowego identyfikatora sesji
+* autentykacja użytkownika na podstawie loginu i hasła
+* autentykacja użytkownika na podstawie identyfikatora sesji
+
+3. Przypadek dodawania papieru naukowego (Scientific Paper)
+
+Wystawione REST API:
+* /api/articles [POST]
+** name - string
+** theme - string
+** label - string
+** description - string
+** text - string
+** attachment - BLOB[]
+
+* /api/articles [GET]
+<redirect into list of articles of given user <<author>>>
+
+* /api/articles/author/<userId:Int> [GET]
+<userId must match userdId of logged user>
+** return [titles and id of publications]
+
+* /api/articles/<articleId:Int> [GET]
+<userId must match userId of logged user>
+** return []
+
+
+Funkcja:
+* dodawanie nowego scientific paper
+* pobieranie listy scientific paper(*) dla zalogowanego uzytkownika
+* pobieranie dokumentu cyfrowego
+* pobieranie dokumentu - informacje o scientific paper
+
+(*) wynik w kontekście zalogowanego użytkownika; autentykacja na poziomie uprawnień dla pojedynczej roli ('zalogowany'). Brak roli 'Administrator'
+
+
+TODO:
+1. Extend Registration case to accept full class model
+* sex - string
+* age - integer
+* academicDegree: {BSc, MSc, PhD, MD}
+
+Notes:
+[Designing REST with Flask] http://stackoverflow.com/questions/21634682/proper-way-for-user-authentication-with-angularjs-and-flask
+[Flask auth] http://flask.pocoo.org/snippets/8/
+[Flask auth] http://flask.pocoo.org/snippets/98/
+[Flask principal] https://pythonhosted.org/Flask-Principal/
+[Flask principal issues] http://stackoverflow.com/questions/7050137/flask-principal-tutorial-auth-authr
+[Flask principal example] http://terse-words.blogspot.com/2011/06/flask-extensions-for-authorization-with.html
+[Secure REST transactions] http://stackoverflow.com/questions/29210768/how-to-send-credentials-over-http-for-rest-api
+[JSON Web Tokens] https://jwt.io/
+[Authentication with tokens] https://templth.wordpress.com/2015/01/05/implementing-authentication-with-tokens-for-restful-applications/
+[Angular.JS as clientside] http://stackoverflow.com/questions/22301920/is-angularjs-clientside-or-serverside-or-both
+[Flask deploy] http://flask.pocoo.org/docs/0.12/deploying/mod_wsgi/
+[Python ORM - sqlAlchemy] http://docs.sqlalchemy.org/en/latest/dialects/mysql.html
+[Prostgresql Replication] https://www.digitalocean.com/community/tutorials/how-to-set-up-master-slave-replication-on-postgresql-on-an-ubuntu-12-04-vps
+[PostgreSql Replication Type] https://www.postgresql.org/docs/9.0/static/different-replication-solutions.html
+[SqlAlchemy vs Replication]http://stackoverflow.com/questions/42987544/how-do-i-work-with-a-postgresql-replication-setup-with-sqlalchemy
+[Storing files in database discussion] https://softwareengineering.stackexchange.com/questions/150669/is-it-a-bad-practice-to-store-large-files-10-mb-in-a-database
+[Downloading files from db issues] https://groups.google.com/forum/#!topic/sqlalchemy/0aS215S5BzI
+[PostgreSql storing datafiles methods] https://wiki.postgresql.org/wiki/BinaryFilesInDB
+[Flask mail support] https://pythonhosted.org/flask-mail/
+[Flask mail confirmation] https://realpython.com/blog/python/handling-email-confirmation-in-flask/
+[Flask mail example] https://www.tutorialspoint.com/flask/flask_mail.htm
+[MVC, MVVC discussion] http://stackoverflow.com/questions/667781/what-is-the-difference-between-mvc-and-mvvm
+[Business layer discussion] http://thedailywtf.com/articles/The-Mythical-Business-Layer
+[Viewpoints] https://books.google.pl/books?id=ka4QO9kXQFUC&pg=PA271&lpg=PA271&dq=%22component+diagram%22+%22functional+viewpoint%22&source=bl&ots=ysUsZ4WOU3&sig=AOw7nCkKvAVF4y38pSv1Ot2JgOA&hl=pl&sa=X&ved=0ahUKEwiLk5OYnIHUAhUDuRQKHXIpDKEQ6AEIODAG#v=onepage&q=%22component%20diagram%22%20%22functional%20viewpoint%22&f=false
+[Mail Transfer Agent instead full mail server] https://www.digitalocean.com/community/tutorials/why-you-may-not-want-to-run-your-own-mail-server
