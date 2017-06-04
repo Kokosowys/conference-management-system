@@ -4,13 +4,15 @@ import json
 from collections import namedtuple
 from functools import partial
 
-from flask import Flask, current_app, abort, request, jsonify, g, url_for
+from flask import (Flask, current_app, abort, request,
+    jsonify, g, url_for, send_from_directory)
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_httpauth import HTTPBasicAuth
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
+from werkzeug import secure_filename
 from flask_principal import (AnonymousIdentity, Identity,
     identity_changed, identity_loaded, Permission, Principal,
     RoleNeed, ActionNeed, UserNeed)
@@ -253,29 +255,36 @@ def getAuthorsArticlesNames(id):
     articlesNames = [{'articleId':a.id, 'name':a.name} for a in articles]
     return jsonify(articlesNames)
 
-@app.route('/api/articles/attachments', methods=['POST'])
-def newAttachment():
+@app.route('/api/articles/<int:articleId>/attachments', methods=['POST'])
+@auth.login_required
+#todo - access for author only
+def newAttachment(articleId):
     file = request.files['file']
-    articleId = request.files['articleId']
-
     if not file or not allowed_file(file.filename):
-        # TODO - check if article present
         abort(400)
 
     filename = file.filename
     filenameSafe = secure_filename(filename)
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filenameSafe))
 
-    #TODO - add entry into db: id and safe_name
+    attachment = Attachment(name=filenameSafe, articleId=articleId)
+    db.session.add(attachment)
+    db.session.commit()
 
-    return (jsonify({'name': attachment.name, 'personId': attachment.id}),
+    return (jsonify({'name': attachment.name, 'attachmentId': attachment.id}),
         201,
-        {'Location': url_for('getAttachment', id=attachment.id, _external=True)})
+        {'Location': url_for('getAttachment', attachmentId=attachment.id, _external=True)})
 
 
 @app.route('/api/articles/attachments/<int:attachmentId>', methods=['GET'])
+@auth.login_required
+#todo - access for author only
 def getAttachment(attachmentId):
-    filename = "" #TODO - fetch  filename from db
+    attachment = Attachment.query.get(attachmentId)
+    if not attachment:
+        print 'no such attachment'
+        abort(400)
+    filename = attachment.name
     return send_from_directory(app.config['UPLOAD_FOLDER'],
                                filename)
 
