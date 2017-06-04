@@ -165,12 +165,20 @@ def allowed_file(filename):
 
 
 # REST API
-@app.route('/api/token')
+@app.route('/api/token/validate', methods=['GET'])
+def validateAuthToken():
+    tokenGot = request.json.get('token')
+    person = Person.verify_auth_token(tokenGot)
+    if person:
+        return jsonify({'tokenValidation': True})
+    return (jsonify({'tokenValidation': False}),
+        403,)
+
+@app.route('/api/token/generate', methods=['GET'])
 @auth.login_required
 def getAuthToken():
     token = g.person.generate_auth_token(600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
-
 
 @app.route('/api/people', methods=['POST'])
 def newPerson():
