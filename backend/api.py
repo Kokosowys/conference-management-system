@@ -299,4 +299,6 @@ def get_resource():
 if __name__ == '__main__':
     if not os.path.exists('db.sqlite'):
         db.create_all()
+    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+        os.mkdir(app.config['UPLOAD_FOLDER'])
     app.run(debug=True, host='0.0.0.0')
