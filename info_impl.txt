@@ -13,6 +13,8 @@ Raport z testów funkcjonalnych i jednostkowych.
 2. Przypadek Rejestracji Użytkownika - część backend
 
 2.1 Wystawione REST API:
+Dane wymiane są w formacie JSON.
+
 * /api/people [POST]
 ** name - string (required)
 ** surname - string (not required, null by default)
@@ -31,9 +33,16 @@ Raport z testów funkcjonalnych i jednostkowych.
 	curl -u miguel:python  -X  GET http://127.0.0.1:5000/api/people/1
 
 
-* /api/token
+* /api/token/validate [GET]
+** token - string
+** <return>: json('tokenValidation' - boolean)
+** <return status> 200 if tokenValidation == True; 403 if tokenValidation ==False
+** Przykładowe wywołanie:
+	 curl -i -X GET -H "Content-Type: application/json" -d '{"token":"USER_SESSION_TOKEN"}' http://127.0.0.1:5000/api/token/validate
+
+* /api/token/generate [GET]
 ** <header> personName and password
-** <return>: json(session id - string)
+** <return>: json('token' - string, 'duration' - int)
 ** Przykładowe wywołanie:
 	curl -u miguel:python -X  GET http://127.0.0.1:5000/api/token
 
