@@ -234,13 +234,16 @@ def getArticle(id):
     article = Article.query.get(id)
     if not article:
         abort(400)
+
+    attachmentsNames = [{'attachmentId':a.id, 'name':a.name} for a in article.
+        attachments]
     return jsonify({'articleId' : article.id,
         'name' : article.name,
         'theme' : article.theme,
         'label' : article.label,
         'description' : article.description,
         'text' : article.text,
-        'attachments' : article.attachments})
+        'attachments' : attachmentsNames})
 
 
 @app.route('/api/articles/author/<int:id>', methods=['GET'])
