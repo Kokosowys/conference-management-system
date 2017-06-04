@@ -14,7 +14,11 @@ Raport z testów funkcjonalnych i jednostkowych.
 
 2.1 Wystawione REST API:
 * /api/users [POST]
-** username - string
+** name - string
+** surname - string
+** sex - string
+** age - integer
+** academicDegree: {BSc, MSc, PhD, MD} - string
 ** password - string
 ** return STATUS
 
@@ -43,7 +47,7 @@ Ze względu na to, że aplikacja w podstawowej wersji będzie zawierała tylko d
 
 W aplikacji prototypowej zdefiniowano dwie role: {user, author}. Role posiadają następujące uprawnienia:
 * user
-**
+** dodawanie article
 
 3. Przypadek dodawania papieru naukowego (Scientific Paper)
 
@@ -64,12 +68,12 @@ Wystawione REST API:
 ** return [{id - int, name - string}, ... of articles assigned to given user]
 
 * /api/articles/<articleId:Int> [GET]
-<userId must match userId of logged user>
+<userId of article must match userId of logged user>
 ** return {id - int, name - string, theme - string, label - string, description - string, text - string, attachments: [id - int, name - string]} of given article
 
 * /api/articles/attachments/<attachmentId:Int> [GET]
-<userId must match userId of logged user>
-** return {id - int, name - string, theme - string, label - string, description - string, text - string, ifAttachmentPresent - boolean (true/false)} of given article
+<userId of article must match userId of logged user>
+** return FILE (BLOB)
 
 
 
@@ -83,10 +87,7 @@ Funkcja:
 
 
 TODO:
-1. Extend Registration case to accept full class model
-* sex - string
-* age - integer
-* academicDegree: {BSc, MSc, PhD, MD}
+
 
 Notes:
 [Designing REST with Flask] http://stackoverflow.com/questions/21634682/proper-way-for-user-authentication-with-angularjs-and-flask

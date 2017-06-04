@@ -40,9 +40,13 @@ class EditArticlePermission(Permission):
 
 #Model classes (DAO)
 class User(db.Model):
-    __tablename__ = 'user'
+    __tablename__ = 'person'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(32), index=True)
+    name = db.Column(db.String(32), index=True)
+    surname = db.Column(db.String(32))
+    sex = db.Column(db.String(16))
+    age = db.Column(db.Integer)
+    academicDegree = db.Column(db.String(8))
     password_hash = db.Column(db.String(64))
     roles = db.Column(db.String(64))
 
@@ -92,8 +96,8 @@ def verify_password(username_or_token, password):
     # first try to authenticate by token
     user = User.verify_auth_token(username_or_token)
     if not user:
-        # try to authenticate with username/password
-        user = User.query.filter_by(username=username_or_token).first()
+        # try to authenticate with name/password
+        user = User.query.filter_by(name=username_or_token).first()
         if not user or not user.verify_password(password):
             return False
     g.user = user
@@ -121,17 +125,22 @@ def on_identity_loaded(sender, identity):
 
 @app.route('/api/users', methods=['POST'])
 def new_user():
-    username = request.json.get('username')
+    name = request.json.get('name')
     password = request.json.get('password')
-    if username is None or password is None:
+    surname = request.json.get('surname')
+    sex = request.json.get('sex')
+    age = request.json.get('age')
+    academicDegree = request.json.get('academicDegree')
+    if name is None or password is None:
         abort(400)    # missing arguments
-    if User.query.filter_by(username=username).first() is not None:
+    if User.query.filter_by(name=name).first() is not None:
         abort(400)    # existing user
-    user = User(username=username)
+    user = User(name=name, surname=surname, sex=sex, age=age,
+        academicDegree=academicDegree)
     user.hash_password(password)
     db.session.add(user)
     db.session.commit()
-    return (jsonify({'username': user.username}), 201,
+    return (jsonify({'name': user.name}), 201,
             {'Location': url_for('get_user', id=user.id, _external=True)})
 
 
@@ -140,7 +149,7 @@ def get_user(id):
     user = User.query.get(id)
     if not user:
         abort(400)
-    return jsonify({'username': user.username})
+    return jsonify({'name': user.name})
 
 
 @app.route('/api/token')
@@ -153,7 +162,7 @@ def get_auth_token():
 @app.route('/api/resource')
 @auth.login_required
 def get_resource():
-    return jsonify({'data': 'Hello, %s!' % g.user.username})
+    return jsonify({'data': 'Hello, %s!' % g.user.name})
 
 if __name__ == '__main__':
     if not os.path.exists('db.sqlite'):
