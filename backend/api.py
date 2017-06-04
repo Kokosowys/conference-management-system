@@ -193,6 +193,7 @@ def newPerson():
 
 
 @app.route('/api/people/<int:id>')
+@auth.login_required
 def getPerson(id):
     person = Person.query.get(id)
     if not person:
@@ -203,17 +204,43 @@ def getPerson(id):
         'age': person.age,
         'academicDegree': person.academicDegree})
 
-
 @app.route('/api/articles', methods=['POST'])
+@auth.login_required
 def newArticle():
-    pass
+    name = request.json.get('name')
+    theme = request.json.get('theme')
+    label = request.json.get('label')
+    description = request.json.get('description')
+    text = request.json.get('text')
+    if name is None:
+        abort(400)
 
-@app.route('/api/articles/<int:articleId>', methods=['GET'])
-def getArticle(articleId):
-    pass
+    loggedPerson = g.person
+    article = Article(name=name, theme=theme, label=label,
+        description=description, text=text, person=loggedPerson)
+    db.session.add(article)
+    db.session.commit()
+    return (jsonify({'articleId':article.id,
+        'name':article.name}),
+        201,
+        {'Location': url_for('getArticle', id=article.id, _external=True)})
 
-@app.route('/api/articles/author/<int:personId>', methods=['GET'])
-def getAuthorsArticles(personId):
+@app.route('/api/articles/<int:id>', methods=['GET'])
+@auth.login_required
+def getArticle(id):
+    article = Article.query.get(id)
+    if not article:
+        abort(400)
+    return jsonify({'name' : article.name,
+        'theme' : article.theme,
+        'label' : article.label,
+        'description' : article.description,
+        'text' : article.text,
+        'attachments' : article.attachments})
+
+
+@app.route('/api/articles/author/<int:id>', methods=['GET'])
+def getAuthorsArticles(id):
     pass
 
 @app.route('/api/articles/attachments', methods=['POST'])
@@ -238,7 +265,7 @@ def newAttachment():
 
 @app.route('/api/articles/attachments/<int:attachmentId>', methods=['GET'])
 def getAttachment(attachmentId):
-    filename = "" #TODO - fetch filename from db
+    filename = "" #TODO - fetch  filename from db
     return send_from_directory(app.config['UPLOAD_FOLDER'],
                                filename)
 
