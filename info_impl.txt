@@ -21,16 +21,25 @@ Raport z testów funkcjonalnych i jednostkowych.
 ** academicDegree: {BSc, MSc, PhD, MD} - string (not required, null by default)
 ** password - string (required)
 ** <return>: json({name - string, personId - int})
+** Przykładowe wywołanie:
+	curl -i -X POST -H "Content-Type: application/json" -d '{"name":"miguel","password":"python"}' http://127.0.0.1:5000/api/people
+
 
 * /api/people/<int:id> [GET]
-** <return>: json({name - string, surname - string, sex - string, age - integer, academicDegree - string})
+** <return>: json({personId - int, name - string, surname - string, sex - string, age - integer, academicDegree - string})
+** Przykładowe wywołanie:
+	curl -u miguel:python  -X  GET http://127.0.0.1:5000/api/people/1
+
 
 * /api/token
 ** <header> personName and password
 ** <return>: json(session id - string)
+** Przykładowe wywołanie:
+	curl -u miguel:python -X  GET http://127.0.0.1:5000/api/token
+
 
 * /api/resource
-** dummy response - string
+** testing response - string
 
 2.2 Funkcje:
 * dodawanie nowego użytkownika do bazy danych
@@ -48,43 +57,55 @@ Ze względu na to, że aplikacja w podstawowej wersji będzie zawierała tylko d
 W aplikacji prototypowej zdefiniowano dwie role: {user, author}. Role posiadają następujące uprawnienia:
 * user
 ** dodawanie article
+* author
+** przeglądanie swoich artykułów
+** dowanie załączników do swoich artykułów
 
 3. Przypadek dodawania papieru naukowego (Scientific Paper)
 
-Wystawione REST API:
+3.1 Wystawione REST API:
 * /api/articles [POST]
-** name - string
-** theme - string
-** label - string
-** description - string
-** text - string
-** <return>: articleId - json(int)
+** name - string (required)
+** theme - string (not required, null by default)
+** label - string (not required, null by default)
+** description - string (not required, null by default)
+** text - string (not required, null by default)
+** <return>: json({articleId - int, name - string})
+** Przykładowe wywołanie:
+	curl -u miguel:python -i -X POST -H "Content-Type: application/json" -d '{"name":"article_name"}' http://127.0.0.1:5000/api/articles
 
-* /api/articles [GET] **optional**
-<redirect into list of articles of given user <<author>>>
 
-* /api/articles/attachments [POST]
+* /api/articles/<articleId:Int> [GET]
+<userId of article must match userId of logged user>
+** <return>: json({articleId - int, name - string, theme - string, label - string, description - string, text - string, attachments: [attachmentId - int, name - string]} of given article)
+* Przykładowe wywołanie:
+	curl -u miguel:python -i -X GET http://127.0.0.1:5000/api/articles/1
+
+
+* /api/articles/author/<personId:Int> [GET]
+<userId must match userdId of logged user>
+** <return>: json ([{articleId - int, name - string}, ... of articles assigned to given user])
+** Przykładowe wywołanie:
+	curl -u miguel:python -X  GET http://127.0.0.1:5000/api/articles/author/1
+
+
+* /api/articles/<articleId:Int>/attachments [POST]
 <userId of article (by articleId) must match userId of logged user>
 ** file - BLOB
-** articleId - int
-** <return>: attachmentId - json(int)
+** <return>:  json({attachmentId - int, name - string})
+** Przykładowe wywołanie:
+	curl -u miguel:python -i -X POST -F 'file=@/tmp/example.pdf' http://127.0.0.1:5000/api/articles/1/attachments
+
 
 * /api/articles/attachments/<attachmentId:Int> [GET]
 <userId of article must match userId of logged user>
 ** <return>: FILE (BLOB)
-
-* /api/articles/author/<userId:Int> [GET]
-<userId must match userdId of logged user>
-** <return>: json ([{id - int, name - string}, ... of articles assigned to given user])
-
-* /api/articles/<articleId:Int> [GET]
-<userId of article must match userId of logged user>
-** <return>: json({id - int, name - string, theme - string, label - string, description - string, text - string, attachments: [id - int, name - string]} of given article)
+** Przykładowe wywołanie:
+	 curl -u miguel:python -X  GET http://127.0.0.1:5000/api/articles/attachments/1
 
 
 
-
-Funkcja:
+3.2 Funkcja:
 * dodawanie nowego scientific paper
 * pobieranie listy scientific paper(*) dla zalogowanego uzytkownika
 * pobieranie dokumentu cyfrowego
@@ -93,7 +114,8 @@ Funkcja:
 (*) wynik w kontekście zalogowanego użytkownika; autentykacja na poziomie uprawnień dla pojedynczej roli ('zalogowany'). Brak roli 'Administrator'
 
 
-TODO:
+REST Api TODO:
+* Zarządzanie rolami - wprowadznie ograniczenia dla roli Author, zmiana ról
 
 
 Notes:
