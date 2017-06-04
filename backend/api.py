@@ -165,13 +165,13 @@ def allowed_file(filename):
 # REST API
 @app.route('/api/token')
 @auth.login_required
-def get_auth_token():
+def getAuthToken():
     token = g.person.generate_auth_token(600)
     return jsonify({'token': token.decode('ascii'), 'duration': 600})
 
 
 @app.route('/api/people', methods=['POST'])
-def new_user():
+def newPerson():
     name = request.json.get('name')
     password = request.json.get('password')
     surname = request.json.get('surname')
@@ -189,11 +189,11 @@ def new_user():
     db.session.commit()
     return (jsonify({'name': person.name, 'personId': person.id}),
         201,
-        {'Location': url_for('get_person', id=person.id, _external=True)})
+        {'Location': url_for('getPerson', id=person.id, _external=True)})
 
 
 @app.route('/api/people/<int:id>')
-def get_person(id):
+def getPerson(id):
     person = Person.query.get(id)
     if not person:
         abort(400)
@@ -204,35 +204,50 @@ def get_person(id):
         'academicDegree': person.academicDegree})
 
 
+@app.route('/api/articles', methods=['POST'])
+def newArticle():
+    pass
+
+@app.route('/api/articles/<int:articleId>', methods=['GET'])
+def getArticle(articleId):
+    pass
+
+@app.route('/api/articles/author/<int:personId>', methods=['GET'])
+def getAuthorsArticles(personId):
+    pass
+
+@app.route('/api/articles/attachments', methods=['POST'])
+def newAttachment():
+    file = request.files['file']
+    articleId = request.files['articleId']
+
+    if not file or not allowed_file(file.filename):
+        # TODO - check if article present
+        abort(400)
+
+    filename = file.filename
+    filenameSafe = secure_filename(filename)
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filenameSafe))
+
+    #TODO - add entry into db: id and safe_name
+
+    return (jsonify({'name': attachment.name, 'personId': attachment.id}),
+        201,
+        {'Location': url_for('getAttachment', id=attachment.id, _external=True)})
+
+
+@app.route('/api/articles/attachments/<int:attachmentId>', methods=['GET'])
+def getAttachment(attachmentId):
+    filename = "" #TODO - fetch filename from db
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
+
+
 @app.route('/api/resource')
 @auth.login_required
 def get_resource():
     return jsonify({'data': 'Hello, %s!' % g.person.name})
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    # Get the name of the uploaded file
-    file = request.files['file']
-    # Check if the file is one of the allowed types/extensions
-    if file and allowed_file(file.filename):
-        # Make the filename safe, remove unsupported chars
-        filename = secure_filename(file.filename)
-        # Move the file form the temporal folder to
-        # the upload folder we setup
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        # Redirect the user to the uploaded_file route, which
-        # will basicaly show on the browser the uploaded file
-        return redirect(url_for('uploaded_file',
-                                filename=filename))
-
-# This route is expecting a parameter containing the name
-# of a file. Then it will locate that file on the upload
-# directory and show it on the browser, so if the user uploads
-# an image, that image is going to be show after the upload
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
-                               filename)
 
 # Server invoke
 if __name__ == '__main__':
