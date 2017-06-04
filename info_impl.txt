@@ -12,7 +12,7 @@ Raport z testów funkcjonalnych i jednostkowych.
 
 2. Przypadek Rejestracji Użytkownika - część backend
 
-Wystawione REST API:
+2.1 Wystawione REST API:
 * /api/users [POST]
 ** username - string
 ** password - string
@@ -28,11 +28,22 @@ Wystawione REST API:
 * /api/resource
 ** dummy response - string
 
-Funkcje:
+2.2 Funkcje:
 * dodawanie nowego użytkownika do bazy danych
 * generowanie czasowego identyfikatora sesji
 * autentykacja użytkownika na podstawie loginu i hasła
 * autentykacja użytkownika na podstawie identyfikatora sesji
+
+2.3 Role Based Security
+Prototypowa aplikacja zakłada, że użytkownicy mogą posiadać dwie role: {user, author}. Rola 'user' jest nadawana każdemu zarejestrowanemu użytkownikowi. Rola 'author' jest nadawana użytkownikowi, który zgłosił artykuł naukowy.
+
+W celu implementacji zabezpieczenia na bazie ról, rozwarzany był standardowy wzorzec do kontroli dostępu 'Role Based Security'. W aplikacji zostałaby zaimplementowana okrojona wersja wzorca, operująca na dwóch klasach: User, Role, przy czym klasy User i Role związane są relacjami wiele do wielu za pośrednictwem klasy 'Role Member'.
+
+Ze względu na to, że aplikacja w podstawowej wersji będzie zawierała tylko dwie role, a pełna, docelowa aplikacja, nie więcej niż pięć dlatego w części backendowej zaimplementowane zostało rozwiązanie oparte o rozszerzenie do Frameworku używanego do budowania REST api. Rozszerzenie nazwya się 'Flask-Principal'. Poszczególne zasoby kontrolowane są ze względu na role przypisane do użytkowników. Role definiowane są jako zbiory uprawnień.
+
+W aplikacji prototypowej zdefiniowano dwie role: {user, author}. Role posiadają następujące uprawnienia:
+* user
+**
 
 3. Przypadek dodawania papieru naukowego (Scientific Paper)
 
@@ -50,11 +61,16 @@ Wystawione REST API:
 
 * /api/articles/author/<userId:Int> [GET]
 <userId must match userdId of logged user>
-** return [titles and id of publications]
+** return [{id - int, name - string}, ... of articles assigned to given user]
 
 * /api/articles/<articleId:Int> [GET]
 <userId must match userId of logged user>
-** return []
+** return {id - int, name - string, theme - string, label - string, description - string, text - string, attachments: [id - int, name - string]} of given article
+
+* /api/articles/attachments/<attachmentId:Int> [GET]
+<userId must match userId of logged user>
+** return {id - int, name - string, theme - string, label - string, description - string, text - string, ifAttachmentPresent - boolean (true/false)} of given article
+
 
 
 Funkcja:
@@ -74,11 +90,14 @@ TODO:
 
 Notes:
 [Designing REST with Flask] http://stackoverflow.com/questions/21634682/proper-way-for-user-authentication-with-angularjs-and-flask
+[Role Based Security] https://stackoverflow.com/questions/13102872/better-way-to-represent-user-roles-in-database
 [Flask auth] http://flask.pocoo.org/snippets/8/
 [Flask auth] http://flask.pocoo.org/snippets/98/
 [Flask principal] https://pythonhosted.org/Flask-Principal/
 [Flask principal issues] http://stackoverflow.com/questions/7050137/flask-principal-tutorial-auth-authr
 [Flask principal example] http://terse-words.blogspot.com/2011/06/flask-extensions-for-authorization-with.html
+[Flask principal example] https://github.com/mickey06/Flask-principal-example
+[Flask principal DOC - view more articles, edit for author only; s.13] https://media.readthedocs.org/pdf/flask-principal-cn/stable/flask-principal-cn.pdf
 [Secure REST transactions] http://stackoverflow.com/questions/29210768/how-to-send-credentials-over-http-for-rest-api
 [JSON Web Tokens] https://jwt.io/
 [Authentication with tokens] https://templth.wordpress.com/2015/01/05/implementing-authentication-with-tokens-for-restful-applications/
