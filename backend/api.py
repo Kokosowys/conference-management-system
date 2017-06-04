@@ -15,15 +15,14 @@ from flask_principal import (AnonymousIdentity, Identity,
     identity_changed, identity_loaded, Permission, Principal,
     RoleNeed, ActionNeed, UserNeed)
 
-# contraints
-ATTACHMENTS_DIR = '/home/rsztandera/conference-management-system/attachments'
-
 # initialization
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '!haselko'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'uploads/'
+app.config['ALLOWED_EXTENSIONS'] = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 # extensions
 db = SQLAlchemy(app)
@@ -143,12 +142,12 @@ def on_identity_loaded(sender, identity):
 
 # Authentication
 @auth.verify_password
-def verify_password(username_or_token, password):
+def verify_password(name_or_token, password):
     # first try to authenticate by token
-    person = Person.verify_auth_token(username_or_token)
+    person = Person.verify_auth_token(name_or_token)
     if not person:
         # try to authenticate with name/password
-        person = Person.query.filter_by(name=username_or_token).first()
+        person = Person.query.filter_by(name=name_or_token).first()
         if not person or not person.verify_password(password):
             return False
     g.person = person
@@ -157,8 +156,21 @@ def verify_password(username_or_token, password):
     return True
 
 
+# File transfer handling
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in app.config['ALLOWED_EXTENSIONS']
+
+
 # REST API
-@app.route('/api/users', methods=['POST'])
+@app.route('/api/token')
+@auth.login_required
+def get_auth_token():
+    token = g.person.generate_auth_token(600)
+    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+
+
+@app.route('/api/people', methods=['POST'])
 def new_user():
     name = request.json.get('name')
     password = request.json.get('password')
@@ -175,29 +187,52 @@ def new_user():
     person.hash_password(password)
     db.session.add(person)
     db.session.commit()
-    return (jsonify({'name': person.name}), 201,
-            {'Location': url_for('get_user', id=person.id, _external=True)})
+    return (jsonify({'name': person.name, 'personId': person.id}),
+        201,
+        {'Location': url_for('get_person', id=person.id, _external=True)})
 
 
-@app.route('/api/users/<int:id>')
-def get_user(id):
+@app.route('/api/people/<int:id>')
+def get_person(id):
     person = Person.query.get(id)
     if not person:
         abort(400)
-    return jsonify({'name': person.name})
-
-
-@app.route('/api/token')
-@auth.login_required
-def get_auth_token():
-    token = g.person.generate_auth_token(600)
-    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+    return jsonify({'name': person.name,
+        'surname': person.surname,
+        'sex': person.sex,
+        'age': person.age,
+        'academicDegree': person.academicDegree})
 
 
 @app.route('/api/resource')
 @auth.login_required
 def get_resource():
     return jsonify({'data': 'Hello, %s!' % g.person.name})
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    # Get the name of the uploaded file
+    file = request.files['file']
+    # Check if the file is one of the allowed types/extensions
+    if file and allowed_file(file.filename):
+        # Make the filename safe, remove unsupported chars
+        filename = secure_filename(file.filename)
+        # Move the file form the temporal folder to
+        # the upload folder we setup
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        # Redirect the user to the uploaded_file route, which
+        # will basicaly show on the browser the uploaded file
+        return redirect(url_for('uploaded_file',
+                                filename=filename))
+
+# This route is expecting a parameter containing the name
+# of a file. Then it will locate that file on the upload
+# directory and show it on the browser, so if the user uploads
+# an image, that image is going to be show after the upload
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
 
 # Server invoke
 if __name__ == '__main__':
