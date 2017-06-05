@@ -174,6 +174,7 @@ def allowed_file(filename):
 import sys
 @app.route('/api/token/validate', methods=['GET'])
 def validateAuthToken():
+    print >> sys.stderr, "request.getjson {}".format(request.get_json())
     print >> sys.stderr, "request.data {}".format(request.data)
     print >> sys.stderr, "request.args {}".format(request.args)
     print >> sys.stderr, "request.form {}".format(request.form)
