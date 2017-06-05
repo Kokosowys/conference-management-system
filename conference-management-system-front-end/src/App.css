@@ -1,0 +1,38 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+
+.App-header {
+  background-color: #222;
+  height: 150px;
+  padding: 20px;
+  color: white;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+.headerNav {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    background-color: rgba(0,0,0,0.3);
+}
+
+.routerLink {
+    padding: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    background-color: indianred;
+}
+
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
