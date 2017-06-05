@@ -9,6 +9,7 @@ from flask import (Flask, current_app, abort, request,
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_httpauth import HTTPBasicAuth
+from flask_cors import CORS, cross_origin
 from passlib.apps import custom_app_context as pwd_context
 from itsdangerous import (TimedJSONWebSignatureSerializer
                           as Serializer, BadSignature, SignatureExpired)
@@ -30,6 +31,7 @@ app.config['ALLOWED_EXTENSIONS'] = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif
 db = SQLAlchemy(app)
 auth = HTTPBasicAuth()
 principals = Principal(app, skip_static=True)
+CORS(app)
 
 # Model classes (DAO)
 class Person(db.Model):
