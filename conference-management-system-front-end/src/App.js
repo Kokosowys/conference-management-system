@@ -17,31 +17,31 @@ class App extends Component {
         isLoggingScreen: false,
         apiPath: "http://skt-site.com:5000"
     }
-    handleValidateToken = (token) => {
-        axios({
-            method: 'get',
-            url: this.state.apiPath+'/api/token/validate',
+    handleValidateToken = (tokenz) => {
+        
+        const hash = new Buffer(`${tokenz}`).toString('base64');
+        var tokenJSON = {'token':tokenz};
+        
+        axios.get(this.state.apiPath+'/api/token/validate', {
             headers: {
-                    'Access-Control-Allow-Origin': true,
-                    'Access-Control-Allow-Credentials': true,
-                    'Access-Control-Allow-Origin': 'http://localhost:3000',
-                    'Access-Control-Allow-Methods':'GET,PUT,POST,DELETE,OPTIONS',
-                    'Access-Control-Allow-Headers':'Product-Session, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Referer, User-Agent',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'withCredentials':true,
-                
-                },
+                'Access-Control-Allow-Origin':'*',
+                'Accept':'*/*',
+                'Content-Type':'application/json'
+            },
+            params: { 
+                token: tokenz
+            },
             data: {
-                token: token
+                token: tokenz
             }
         }).then( (response) => {
             console.log(response);
             if (response.tokenValidation) { 
                 this.setState({
                     userTokenValid: true,
-                    userToken: token
+                    userToken: tokenz
                 });
-                window.localStoragte.setItem("userToken", token);
+                window.localStoragte.setItem("userToken", tokenz);
             } else {
                 this.setState({
                     userTokenValid: false,
@@ -52,7 +52,7 @@ class App extends Component {
         })
     }
     handleLogging = (token) => {
-        console.log("logged")
+        console.log(token);
         this.handleValidateToken(token);
         this.setState({
             isLoggingScreen:false

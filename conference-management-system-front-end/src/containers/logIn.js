@@ -15,33 +15,38 @@ class Home extends Component {
         }
         this.formErrors(false);
         var userData = {};
-        userData.username = event.target.username.value;
+        userData.name = event.target.username.value;
         userData.password = hash.sha1(event.target.password.value);
         this.handleLogging(userData);
         //window.location = "/home";
     }
     handleLogging = (userData) => {
         console.log(userData);
+        const hash = new Buffer(`${userData.name}:${userData.password}`).toString('base64')
         axios({
-                method: 'get',
+                method: 'GET',
                 url: this.props.apiPath+'/api/token/generate',
                 withCredentials: true,
                 headers: {
-                    'token': this.state.userToken,
-                    'Access-Control-Allow-Origin':'http://skt-site.com:5000',
-                    'Content-Type': 'application/json',
-                    'withCredentials':true,
-                    'auth':{
-                    username: userData.username,
-                    password: userData.password
-                    }
+                    //'token': this.state.userToken,
+                    'Access-Control-Allow-Origin':'*',
+                    //'withCredentials':true,
+                    //'auth':'{Basic '+userData.name+':'+userData.password+'}',
+                    //'name':userData.name,
+                    //'username': userData.name,
+                    //'password': userData.password,
+                    'Accept':'*/*',
+                    'Authorization': `Basic ${hash}`
                 },
-                username:userData.username,
-                password: userData.password,
-                data: JSON.stringify(userData)
+                crossDomain: true
+                //Authorization: `Basic ${hash}`,
+                //name:userData.name,
+                //username: userData.name,
+                //password: userData.password,
+                //data: JSON.stringify(userData)
             }).then((response) => {
                 console.log(response);
-                this.props.handleLogging(response.token)
+                this.props.handleLogging(response.data.token)
             })
     }
     formErrors = (has) => {
