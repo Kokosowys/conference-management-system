@@ -310,6 +310,23 @@ def getAttachment(attachmentId):
 def get_resource():
     return jsonify({'data': 'Hello, %s!' % g.person.name})
 
+# DEBUG class
+import pprint
+
+class LoggingMiddleware(object):
+    def __init__(self, app):
+        self._app = app
+
+    def __call__(self, environ, resp):
+        errorlog = environ['wsgi.errors']
+        pprint.pprint(('REQUEST', environ), stream=errorlog)
+
+        def log_response(status, headers, *args):
+            pprint.pprint(('RESPONSE', status, headers), stream=errorlog)
+            return resp(status, headers, *args)
+
+        return self._app(environ, log_response)
+
 
 # Server invoke
 if __name__ == '__main__':
@@ -317,4 +334,5 @@ if __name__ == '__main__':
         db.create_all()
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.mkdir(app.config['UPLOAD_FOLDER'])
-    app.run(debug=True, host='0.0.0.0')
+    app.wsgi_app = LoggingMiddleware(app.wsgi_app)
+    app.run(debug=False, host='0.0.0.0')
