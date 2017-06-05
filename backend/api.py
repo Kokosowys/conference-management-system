@@ -174,17 +174,21 @@ def allowed_file(filename):
 import sys
 @app.route('/api/token/validate', methods=['GET'])
 def validateAuthToken():
-    dataIn = request.args
-    print >> sys.stderr, "data got {}".format(dataIn)
+    print >> sys.stderr, "request.data {}".format(request.data)
+    print >> sys.stderr, "request.args {}".format(request.args)
+    print >> sys.stderr, "request.form {}".format(request.form)
+    print >> sys.stderr, "request.values {}".format(request.values)
+    print >> sys.stderr, "request.headers {}".format(request.headers)
+    print >> sys.stderr, "request.json {}".format(request.json)
+    print >> sys.stderr, "request.getjson {}".format(request.get_json())
+    dataIn=request.args or request.data
     if not dataIn:
         printOut = (jsonify({'tokenValidation': False,
             'info': 'no token data detected'}),
         403,)
         return printOut
 
-
-    # values OR args
-    tokenGot = dataIn['token']
+    tokenGot = request.json.get('token')
     person = Person.verify_auth_token(tokenGot)
     if person:
         return jsonify({'tokenValidation': True})
