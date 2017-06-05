@@ -183,11 +183,11 @@ def validateAuthToken():
     # print >> sys.stderr, "request.getjson {}".format(request.get_json())
     printOut = (jsonify({'tokenValidation': False,
         'info': 'got following data',
-        "request.data": "{}".format(request.data),
-        "request.args": "{}".format(request.args),
-        "request.form": "{}".format(request.form),
-        "request.values": "{}".format(request.values),
-        "request.headers": "{}".format(request.headers)}),
+        "request.data": "type:{}, repr:{}".format(type(request.data), request.data),
+        "request.args": "type:{}, repr:{}".format(type(request.args), request.args),
+        "request.form": "type:{}, repr:{}".format(type(request.form), request.form),
+        "request.values": "type:{}, repr:{}".format(type(request.values), request.values),
+        "request.headers": "type:{}, repr:{}".format(type(request.headers), request.headers)}),
         403,)
     return printOut
 
