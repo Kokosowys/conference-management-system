@@ -181,7 +181,7 @@ def validateAuthToken():
     print >> sys.stderr, "request.headers {}".format(request.headers)
     # print >> sys.stderr, "request.json {}".format(request.json)
     # print >> sys.stderr, "request.getjson {}".format(request.get_json())
-    dataIn=request.args or request.data
+    dataIn=request.data or request.args
     if not dataIn:
         printOut = (jsonify({'tokenValidation': False,
             'info': 'no token data detected'}),
