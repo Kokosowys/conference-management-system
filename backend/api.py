@@ -129,6 +129,7 @@ class EditArticlePermission(Permission):
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
     print 'on_identity_loaded: identity: {}'.format(identity)
+    return None
     if g.person is None:
         abort(400)
     person = g.person
