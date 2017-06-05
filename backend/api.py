@@ -129,6 +129,8 @@ class EditArticlePermission(Permission):
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
     print 'on_identity_loaded: identity: {}'.format(identity)
+    if g.person is None:
+        abort(400)
     person = g.person
 
     if hasattr(person, 'id'):
@@ -148,6 +150,7 @@ def on_identity_loaded(sender, identity):
 @auth.verify_password
 def verify_password(name_or_token, password):
     # first try to authenticate by token
+    g.person = None
     person = Person.verify_auth_token(name_or_token)
     if not person:
         # try to authenticate with name/password
