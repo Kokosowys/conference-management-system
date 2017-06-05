@@ -174,10 +174,10 @@ def allowed_file(filename):
 import sys
 @app.route('/api/token/validate', methods=['GET'])
 def validateAuthToken():
-    tokenGot = request.json.get('token')
     print >> sys.stderr, "request.args {}".format(request.args)
     print >> sys.stderr, "request.form {}".format(request.form)
     print >> sys.stderr, "request.values {}".format(request.values)
+    tokenGot = request.json.get('token')
     person = Person.verify_auth_token(tokenGot)
     if person:
         return jsonify({'tokenValidation': True})
