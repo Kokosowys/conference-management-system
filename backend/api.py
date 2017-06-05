@@ -171,12 +171,13 @@ def allowed_file(filename):
 
 
 # REST API
+import sys
 @app.route('/api/token/validate', methods=['GET'])
 def validateAuthToken():
     tokenGot = request.json.get('token')
-    print "request.args {}".format(request.args)
-    print "request.form {}".format(request.form)
-    print "request.values {}".format(request.values)
+    print >> sys.stderr, "request.args {}".format(request.args)
+    print >> sys.stderr, "request.form {}".format(request.form)
+    print >> sys.stderr, "request.values {}".format(request.values)
     person = Person.verify_auth_token(tokenGot)
     if person:
         return jsonify({'tokenValidation': True})
@@ -338,5 +339,5 @@ if __name__ == '__main__':
         db.create_all()
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.mkdir(app.config['UPLOAD_FOLDER'])
-    app.wsgi_app = LoggingMiddleware(app.wsgi_app)
+    # app.wsgi_app = LoggingMiddleware(app.wsgi_app)
     app.run(debug=False, host='0.0.0.0')
