@@ -175,14 +175,15 @@ import sys
 @app.route('/api/token/validate', methods=['GET'])
 def validateAuthToken():
     dataIn = request.get_json() or request.values
+    print >> sys.stderr, "data got {}".format(dataIn)
     if not dataIn:
-        (jsonify({'tokenValidation': False,
+        printOut = (jsonify({'tokenValidation': False,
             'info': 'no token data detected'}),
         403,)
+        return printOut
 
 
     # values OR args
-    print >> sys.stderr, "data got {}".format(dataIn)
     tokenGot = dataIn['token']
     person = Person.verify_auth_token(tokenGot)
     if person:
