@@ -174,18 +174,23 @@ def allowed_file(filename):
 import sys
 @app.route('/api/token/validate', methods=['GET'])
 def validateAuthToken():
-    dataIn = request.get_json()
-    print >> sys.stderr, "json  {}".format(dataIn)
-    dataIn = request.args.lists()
-    print >> sys.stderr, "data got {}".format(dataIn)
-    if not dataIn:
-        printOut = (jsonify({'tokenValidation': False,
-            'info': 'no token data detected'}),
+    print >> sys.stderr, "request.data {}".format(request.data)
+    print >> sys.stderr, "request.args {}".format(request.args)
+    print >> sys.stderr, "request.form {}".format(request.form)
+    print >> sys.stderr, "request.values {}".format(request.values)
+    print >> sys.stderr, "request.headers {}".format(request.headers)
+    # print >> sys.stderr, "request.json {}".format(request.json)
+    # print >> sys.stderr, "request.getjson {}".format(request.get_json())
+    printOut = (jsonify({'tokenValidation': False,
+        'info': 'got following data',
+        "request.data": "type:{}, repr:{}".format(type(request.data), request.data),
+        "request.args": "type:{}, repr:{}".format(type(request.args), request.args),
+        "request.form": "type:{}, repr:{}".format(type(request.form), request.form),
+        "request.values": "type:{}, repr:{}".format(type(request.values), request.values),
+        "request.headers": "type:{}, repr:{}".format(type(request.headers), request.headers)}),
         403,)
-        return printOut
+    return printOut
 
-
-    # values OR args
     tokenGot = dataIn['token']
     person = Person.verify_auth_token(tokenGot)
     if person:
