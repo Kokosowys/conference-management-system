@@ -14,7 +14,7 @@ class Users extends Component {
                             <NavLink activeClassName="active" className="routerLink" to="/users/addpaper">Add new paper</NavLink>
                         </div>
                         <div>
-                            <Route path='/users/addpaper' component={() => (<AddPaper apiPath={this.props.apiPath}/>)} />
+                            <Route path='/users/addpaper' component={() => (<AddPaper apiPath={this.props.apiPath} userToken={this.props.userToken} userTokenValid={this.props.userTokenValid}/>)} />
                         </div>
                     </div>
                 </BrowserRouter>

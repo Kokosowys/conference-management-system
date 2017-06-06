@@ -129,6 +129,9 @@ class EditArticlePermission(Permission):
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
     print 'on_identity_loaded: identity: {}'.format(identity)
+    return None
+    if g.person is None:
+        abort(400)
     person = g.person
 
     if hasattr(person, 'id'):
@@ -148,6 +151,7 @@ def on_identity_loaded(sender, identity):
 @auth.verify_password
 def verify_password(name_or_token, password):
     # first try to authenticate by token
+    g.person = None
     person = Person.verify_auth_token(name_or_token)
     if not person:
         # try to authenticate with name/password
@@ -167,9 +171,22 @@ def allowed_file(filename):
 
 
 # REST API
+import sys
 @app.route('/api/token/validate', methods=['GET'])
 def validateAuthToken():
-    tokenGot = request.json.get('token')
+    dataIn = request.get_json()
+    print >> sys.stderr, "json  {}".format(dataIn)
+    dataIn = request.args.lists()
+    print >> sys.stderr, "data got {}".format(dataIn)
+    if not dataIn:
+        printOut = (jsonify({'tokenValidation': False,
+            'info': 'no token data detected'}),
+        403,)
+        return printOut
+
+
+    # values OR args
+    tokenGot = dataIn['token']
     person = Person.verify_auth_token(tokenGot)
     if person:
         return jsonify({'tokenValidation': True})
@@ -307,6 +324,23 @@ def getAttachment(attachmentId):
 def get_resource():
     return jsonify({'data': 'Hello, %s!' % g.person.name})
 
+# DEBUG class
+import pprint
+
+class LoggingMiddleware(object):
+    def __init__(self, app):
+        self._app = app
+
+    def __call__(self, environ, resp):
+        errorlog = environ['wsgi.errors']
+        pprint.pprint(('REQUEST', environ), stream=errorlog)
+
+        def log_response(status, headers, *args):
+            pprint.pprint(('RESPONSE', status, headers), stream=errorlog)
+            return resp(status, headers, *args)
+
+        return self._app(environ, log_response)
+
 
 # Server invoke
 if __name__ == '__main__':
@@ -314,4 +348,5 @@ if __name__ == '__main__':
         db.create_all()
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.mkdir(app.config['UPLOAD_FOLDER'])
-    app.run(debug=True, host='0.0.0.0')
+    # app.wsgi_app = LoggingMiddleware(app.wsgi_app)
+    app.run(debug=False, host='0.0.0.0')

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "axios": "^0.16.2",
+    "axios-method-override": "^1.0.1",
     "object-hash": "^1.1.8",
     "react": "^15.5.4",
     "react-dom": "^15.5.4"

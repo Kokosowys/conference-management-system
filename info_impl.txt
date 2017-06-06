@@ -9,6 +9,10 @@ continous Integration (np. Jenkins); testy jednostkowe
 Prezentacja - pokazanie jak działa po implementacji.
 
 Raport z testów funkcjonalnych i jednostkowych.
+* Testy funkcje funkcjonalne (do przeklikania)
+* Przygotować zbiór test plan'ów
+* Opisać przypadki testowe np. krańcowe 'brak danych', 'dużo znaków' - sprawdzanie validacji
+* SAWUI?
 
 2. Przypadek Rejestracji Użytkownika - część backend
 

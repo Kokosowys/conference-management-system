@@ -4,14 +4,26 @@ import axios from 'axios';
 class AddPaper extends React.Component {
     state = {
         formHasErrors: false,
-        paperAdded: false
+        paperAdded: false,
+        error: ""
     }
     handleSubmit = (event) => {
         console.log("validating...");
         event.preventDefault();
+        if (!this.props.userTokenValid) {
+            this.formErrors(true);
+            this.setState({
+                error: "Your session has expired, you must log in again"
+            })
+            document.body.scrollTop = 0;
+            return
+        }
         if (this.handleValidation(event.target)) {
             console.log("validated");
             this.formErrors(false);
+            this.setState({
+                error: "You have errors in your form"
+            })
             var userData = {};
             for (var i = 0, iLen = event.target.length -1; i < iLen; i++) {
 	           //var Value = this.attribute('name').value;
@@ -19,16 +31,13 @@ class AddPaper extends React.Component {
                 let value = event.target[i].value;
                 userData[name] = value;
             }
+            const hash = new Buffer(`${this.props.userToken}:password`).toString('base64');
             axios({
                 method: 'post',
                 url: this.props.apiPath+'/api/articles',
-                withCredentials: true,
-                token: this.state.userToken,
                 headers: {
                     'token': this.state.userToken,
-                    'Access-Control-Allow-Origin': true,
-                    'Content-Type': 'application/json',
-                    'withCredentials':true
+                    'Authorization': `Basic ${hash}`
                 },
                 data: JSON.stringify(userData)
             }).then((response) => {
@@ -64,7 +73,7 @@ class AddPaper extends React.Component {
         var errors = null;
         var content = null;
         if (this.state.formHasErrors) {
-            errors = <div style={errorsStyle}><p>You have errors in your form</p></div>
+            errors = <div style={errorsStyle}><p>{this.state.error}</p></div>
         }
         if (this.state.paperAdded) {
             content = <div>Your paper has been sucessfully added</div>

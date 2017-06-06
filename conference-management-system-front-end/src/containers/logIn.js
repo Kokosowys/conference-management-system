@@ -21,31 +21,18 @@ class Home extends Component {
         //window.location = "/home";
     }
     handleLogging = (userData) => {
-        console.log(userData);
+        //console.log(userData);
         const hash = new Buffer(`${userData.name}:${userData.password}`).toString('base64')
         axios({
                 method: 'GET',
                 url: this.props.apiPath+'/api/token/generate',
-                withCredentials: true,
                 headers: {
-                    //'token': this.state.userToken,
                     'Access-Control-Allow-Origin':'*',
-                    //'withCredentials':true,
-                    //'auth':'{Basic '+userData.name+':'+userData.password+'}',
-                    //'name':userData.name,
-                    //'username': userData.name,
-                    //'password': userData.password,
                     'Accept':'*/*',
                     'Authorization': `Basic ${hash}`
-                },
-                crossDomain: true
-                //Authorization: `Basic ${hash}`,
-                //name:userData.name,
-                //username: userData.name,
-                //password: userData.password,
-                //data: JSON.stringify(userData)
+                }
             }).then((response) => {
-                console.log(response);
+                //console.log(response);
                 this.props.handleLogging(response.data.token)
             })
     }

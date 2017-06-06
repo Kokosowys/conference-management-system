@@ -9,6 +9,7 @@ import ContactForm from './containers/contactForm';
 import LogIn from './containers/logIn';
 import AddUser from './components/addUser';
 import axios from 'axios';
+import axiosMethodOverride from 'axios-method-override';
 
 class App extends Component {
     state = {
@@ -18,66 +19,64 @@ class App extends Component {
         apiPath: "http://skt-site.com:5000"
     }
     handleValidateToken = (tokenz) => {
-        
-        const hash = new Buffer(`${tokenz}`).toString('base64');
-        var tokenJSON = {'token':tokenz};
-        
-        axios.get(this.state.apiPath+'/api/token/validate', {
-            headers: {
-                'Access-Control-Allow-Origin':'*',
-                'Accept':'*/*',
-                'Content-Type':'application/json'
-            },
-            params: { 
-                token: tokenz
-            },
-            data: {
-                token: tokenz
-            }
+        const hash = new Buffer(`token:${tokenz}`).toString('base64');
+        var tokenJSON = {token:tokenz};
+        axios({
+            method: 'get',
+            url: this.state.apiPath+'/api/token/validate',
+            params: tokenJSON
         }).then( (response) => {
-            console.log(response);
-            if (response.tokenValidation) { 
+            //console.log(response);
+            if (response.data.tokenValidation) { 
                 this.setState({
                     userTokenValid: true,
                     userToken: tokenz
                 });
-                window.localStoragte.setItem("userToken", tokenz);
+                window.localStorage.setItem("userToken", tokenz);
             } else {
                 this.setState({
                     userTokenValid: false,
                     userToken: null
                 })
-                window.location.setItem("userToken", null)
+                window.localStorage.setItem("userToken", null)
             };
         })
+
     }
     handleLogging = (token) => {
-        console.log(token);
+        //console.log(token);
         this.handleValidateToken(token);
-        this.setState({
-            isLoggingScreen:false
-        });
+        if (this.state.isLoggingScreen) {
+            this.setState({
+                isLoggingScreen:false
+            });
+        }
     }
     handleIsUserLogged = () => {
-        if (!this.state.userToken) {
-            console.log("validating token");
+        if (this.state.userToken === null) {
+            //console.log("validating token");
             this.handleValidateToken(this.state.userToken);
         } 
     }
     handleToLoggingScreen = () => {
         if (window.location.pathname !== "/logIn") {
-            return this.setState({
-            isLoggingScreen:true
-        });
-        }
+            this.setState({
+                isLoggingScreen: true
+            });
+            return
+        } 
         this.setState({
             isLoggingScreen:false
         });
+        return
     }
     componentWillMount = () => {
         if (window.location.pathname.length === 1) {
             window.location.pathname = "/home"
         }
+        this.setState({
+            userTokenValid: false
+        })
         this.handleIsUserLogged();
         return true
     }
@@ -85,7 +84,6 @@ class App extends Component {
         if (window.location.pathname.length === 1) {
             window.location.pathname = "/home"
         }
-        this.handleIsUserLogged();
         return true
     }
   render() {
