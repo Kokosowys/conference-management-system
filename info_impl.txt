@@ -196,3 +196,4 @@ Notes:
 [Business layer discussion] http://thedailywtf.com/articles/The-Mythical-Business-Layer
 [Viewpoints] https://books.google.pl/books?id=ka4QO9kXQFUC&pg=PA271&lpg=PA271&dq=%22component+diagram%22+%22functional+viewpoint%22&source=bl&ots=ysUsZ4WOU3&sig=AOw7nCkKvAVF4y38pSv1Ot2JgOA&hl=pl&sa=X&ved=0ahUKEwiLk5OYnIHUAhUDuRQKHXIpDKEQ6AEIODAG#v=onepage&q=%22component%20diagram%22%20%22functional%20viewpoint%22&f=false
 [Mail Transfer Agent instead full mail server] https://www.digitalocean.com/community/tutorials/why-you-may-not-want-to-run-your-own-mail-server
+[REST Api in Flask unit testing]https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-vii-unit-testing
