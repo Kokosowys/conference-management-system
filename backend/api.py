@@ -18,6 +18,10 @@ from flask_principal import (AnonymousIdentity, Identity,
     identity_changed, identity_loaded, Permission, Principal,
     RoleNeed, ActionNeed, UserNeed)
 
+# constraints
+TOKEN_TIME_SEC = 600
+DEBUG = False
+
 # initialization
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '!haselko'
@@ -172,39 +176,43 @@ def allowed_file(filename):
 
 # REST API
 import sys
+def printRequest(givenRequest):
+    print >> sys.stderr, "request.data {}".format(givenRequest.data)
+    print >> sys.stderr, "request.args {}".format(givenRequest.args)
+    print >> sys.stderr, "request.form {}".format(givenRequest.form)
+    print >> sys.stderr, "request.values {}".format(givenRequest.values)
+    print >> sys.stderr, "request.headers {}".format(givenRequest.headers)
+    print >> sys.stderr, "request.json {}".format(givenRequest.json)
+    print >> sys.stderr, "request.getjson {}".format(givenRequest.get_json())
+    printOut = (jsonify({'tokenValidation': False,
+        'info': 'got following data',
+        "request.data": "type:{}, repr:{}".format(type(givenRequest.data), givenRequest.data),
+        "request.args": "type:{}, repr:{}".format(type(givenRequest.args), givenRequest.args),
+        "request.form": "type:{}, repr:{}".format(type(givenRequest.form), givenRequest.form),
+        "request.values": "type:{}, repr:{}".format(type(givenRequest.values), givenRequest.values),
+        "request.headers": "type:{}, repr:{}".format(type(givenRequest.headers), givenRequest.headers)}),
+        403,)
+    return printOut
+
 @app.route('/api/token/validate', methods=['GET'])
 def validateAuthToken():
-    #print >> sys.stderr, "request.data {}".format(request.data)
-    #print >> sys.stderr, "request.args {}".format(request.args)
-    ##print >> sys.stderr, "request.form {}".format(request.form)
-    #print >> sys.stderr, "request.values {}".format(request.values)
-    #print >> sys.stderr, "request.headers {}".format(request.headers)
-    # print >> sys.stderr, "request.json {}".format(request.json)
-    # print >> sys.stderr, "request.getjson {}".format(request.get_json())
-    printOut = (jsonify({'tokenValidation': False,
-        'token': '{}'.format(request.args.get('token')),
-        "request.args": "type:{}, repr:{}".format(type(request.args), request.args),
-        "request.data": "type:{}, repr:{}".format(type(request.data), request.data),
-        "request.cookie": "type:{}, repr:{}".format(type(request.cookies), request.cookies),
-        "request.form": "type:{}, repr:{}".format(type(request.form), request.form),
-        "request.values": "type:{}, repr:{}".format(type(request.values), request.values),
-        "request.headers": "type:{}, repr:{}".format(type(request.headers), request.headers),
-	"request.json": "type:{}, repr:{}".format(type(request.json), request.json)}),
-        200,)
-    #return printOut
-
     tokenGot = request.args['token']
     person = Person.verify_auth_token(tokenGot)
     if person:
-        return jsonify({'tokenValidation': True})
-    return (jsonify({'tokenValidation': False}),
+        return jsonify({'tokenValidation': True,
+            'personId': person.id})
+    return (jsonify({'tokenValidation': False,
+        'personId': -1}),
         403,)
 
 @app.route('/api/token/generate', methods=['GET'])
 @auth.login_required
 def getAuthToken():
-    token = g.person.generate_auth_token(600)
-    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+    tokenTimeSec = TOKEN_TIME_SEC
+    token = g.person.generate_auth_token(tokenTimeSec)
+    return jsonify({'token': token.decode('ascii'),
+        'duration': tokenTimeSec,
+        'personId': g.person.id})
 
 @app.route('/api/people', methods=['POST'])
 def newPerson():
@@ -214,16 +222,22 @@ def newPerson():
     sex = request.json.get('sex')
     age = request.json.get('age')
     academicDegree = request.json.get('academicDegree')
+
     if name is None or password is None:
-        abort(400)    # missing arguments
+        return (jsonify({"Error":"Missing name or password"}),
+            400)
+
     if Person.query.filter_by(name=name).first() is not None:
-        abort(400)    # existing person
+        return (jsonify({"Error":"provided name '{}' already exist.".format(name)}),
+            400)
+
     person = Person(name=name, surname=surname, sex=sex, age=age,
         academicDegree=academicDegree)
     person.hash_password(password)
     db.session.add(person)
     db.session.commit()
-    return (jsonify({'name': person.name, 'personId': person.id}),
+    return (jsonify({'name': person.name,
+        'personId': person.id}),
         201,
         {'Location': url_for('getPerson', id=person.id, _external=True)})
 
@@ -356,4 +370,4 @@ if __name__ == '__main__':
     if not os.path.exists(app.config['UPLOAD_FOLDER']):
         os.mkdir(app.config['UPLOAD_FOLDER'])
     # app.wsgi_app = LoggingMiddleware(app.wsgi_app)
-    app.run(debug=False, host='0.0.0.0')
+    app.run(debug=DEBUG, host='0.0.0.0')
