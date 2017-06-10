@@ -24,7 +24,7 @@ class TestCase(unittest.TestCase):
 
     def createLoginGetToken(self):
         personPostData = {'name' : 'John',
-        'password' : 'pass'}
+        'password' : 'password'}
         personAuthHeader = getAuthHeader(personPostData['name'],
             personPostData['password'])
 
@@ -45,7 +45,7 @@ class TestCase(unittest.TestCase):
         'sex' : 'M',
         'age' : 50,
         'academicDegree' : 'PhD',
-        'password' : 'pass'}
+        'password' : 'password'}
 
         resp = self.app.post('/api/people',
             data=json.dumps(personPostData),
@@ -70,7 +70,7 @@ class TestCase(unittest.TestCase):
         'sex' : 'M',
         'age' : 50,
         'academicDegree' : 'PhD',
-        'password' : 'pass'}
+        'password' : 'password'}
         personPostDataNoName = personPostData.copy()
         personPostDataNoName.pop('name')
         personPostDataNoPass = personPostData.copy()
@@ -88,44 +88,195 @@ class TestCase(unittest.TestCase):
 
         self.assertEqual(resp.status_code, 400)
 
-    def test_addPersonDuplicateError(self):
-        personPostData = {'name' : 'John',
-        'surname' : 'Mayer',
-        'sex' : 'M',
-        'age' : 50,
-        'academicDegree' : 'PhD',
-        'password' : 'pass'}
+
+    def test_addPersonToShortToLongName(self):
+        nameToShortLen = Person.const()['nameMinLen'] - 1
+        nameToLongLen = Person.const()['nameMaxLen'] + 1
+
+        shortNamePost = {'name' : 'a'*nameToShortLen,
+        'password' : 'password'}
+        longNamePost = {'name' : 'a'*nameToLongLen,
+        'password' : 'password'}
 
         resp = self.app.post('/api/people',
-            data=json.dumps(personPostData),
+            data=json.dumps(shortNamePost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue("Name length" in resp.data)
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(longNamePost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue("Name length" in resp.data)
+
+    def test_addPersonToShortToLongSurname(self):
+        surnameToShortLen = Person.const()['surnameMinLen'] - 1
+        surnameToLongLen = Person.const()['surnameMaxLen'] + 1
+
+        shortsurNamePost = {'name' : 'John',
+        'surname' : 'a'*surnameToShortLen,
+        'password' : 'password'}
+        longsurNamePost = {'name' : 'John',
+        'surname' : 'a'*surnameToLongLen,
+        'password' : 'password'}
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(shortsurNamePost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue("Surname length" in resp.data)
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(longsurNamePost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue("Surname length" in resp.data)
+
+    def test_addPersonToShortToLongPassword(self):
+        passwordToShortLen = Person.const()['passwordMinLen'] - 1
+        passwordToLongLen = Person.const()['passwordMaxLen'] + 1
+
+        shortpasswordPost = {'name' : 'John',
+        'password' : 'a'*passwordToShortLen}
+        longpasswordPost = {'name' : 'John',
+        'password' : 'a'*passwordToLongLen}
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(shortpasswordPost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue("Password length" in resp.data)
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(longpasswordPost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue("Password length" in resp.data)
+
+    def test_addPersonToShortToLongSex(self):
+        sexMinLen = Person.const()['sexMinLen']
+        sexMaxLen = Person.const()['sexMaxLen']
+        sexToLongLen = sexMaxLen + 1
+
+        longsexPost = {'name' : 'John',
+        'sex' : 'a'*sexToLongLen,
+        'password' : 'password'}
+        minPost = {'name' : 'John',
+        'sex' : 'a'*sexMinLen,
+        'password' : 'password'}
+        maxPost = {'name' : 'John',
+        'sex' : 'a'*sexMaxLen,
+        'password' : 'password'}
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(longsexPost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue("Sex length" in resp.data)
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(minPost),
             content_type='application/json')
 
         self.assertEqual(resp.status_code, 201)
 
         resp = self.app.post('/api/people',
-            data=json.dumps(personPostData),
+            data=json.dumps(maxPost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 201)
+
+    def test_addPersonNotValidToSmallToBigAge(self):
+        ageMin = Person.const()['ageMin']
+        ageMax = Person.const()['ageMax']
+        toYoung = ageMin - 1
+        toOld = ageMax + 1
+
+        youngPost = {'name' : 'John',
+        'age' : toYoung,
+        'password' : 'password'}
+        oldPost = {'name' : 'John',
+        'age' : toOld,
+        'password' : 'password'}
+        minPost = {'name' : 'John',
+        'age' : ageMin,
+        'password' : 'password'}
+        maxPost = {'name' : 'John',
+        'age' : ageMax,
+        'password' : 'password'}
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(youngPost),
             content_type='application/json')
 
         self.assertEqual(resp.status_code, 400)
+        self.assertTrue("Age must be between" in resp.data)
 
-    def test_addPersonToShortToLongName(self):
-        pass
+        resp = self.app.post('/api/people',
+            data=json.dumps(oldPost),
+            content_type='application/json')
 
-    def test_addPersonToShortToLongPassword(self):
-        pass
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue("Age must be between" in resp.data)
 
-    def test_addPersonToShortToLongSex(self):
-        pass
+        resp = self.app.post('/api/people',
+            data=json.dumps(minPost),
+            content_type='application/json')
 
-    def test_addPersonNotValidToSmallToBigAge(self):
-        pass
+        self.assertEqual(resp.status_code, 201)
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(maxPost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 201)
 
     def test_addPersonToShortToLongAcademicDegree(self):
-        pass
+        academicDegreeMinLen = Person.const()['academicDegreeMinLen']
+        academicDegreeMaxLen = Person.const()['academicDegreeMaxLen']
+        academicDegreeToShortLen = academicDegreeMinLen - 1
+        academicDegreeToLongLen = academicDegreeMaxLen + 1
+
+        longacademicDegreePost = {'name' : 'John',
+        'academicDegree' : 'a'*academicDegreeToLongLen,
+        'password' : 'password'}
+        minPost = {'name' : 'John',
+        'academicDegree' : 'a'*academicDegreeMinLen,
+        'password' : 'password'}
+        maxPost = {'name' : 'John',
+        'academicDegree' : 'a'*academicDegreeMaxLen,
+        'password' : 'password'}
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(longacademicDegreePost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertTrue("AcademicDegree length" in resp.data)
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(minPost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 201)
+
+        resp = self.app.post('/api/people',
+            data=json.dumps(maxPost),
+            content_type='application/json')
+
+        self.assertEqual(resp.status_code, 201)
 
     def test_generateAndValidTokenStatusOK(self):
         personPostData = {'name' : 'John',
-        'password' : 'pass'}
+        'password' : 'password'}
         personAuthHeader = getAuthHeader(personPostData['name'],
             personPostData['password'])
 
@@ -153,69 +304,91 @@ class TestCase(unittest.TestCase):
         personIdValid = gotData['personId']
         self.assertEqual(personIdValid, personId)
 
+    @unittest.skip("demonstrating skipping")
     def test_generateTokenNotAuthErr(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_validTokenWrongToken(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getPeoplePrintAll(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getPersonNotExistError(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getPersonDataCorrect(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addArticleDataCorrect(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addArticleNameMissingError(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addArticleToShortToLongName(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addArticleToShortToLongTheme(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addArticleToShortToLongLabel(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addArticleToShortToLongDescription(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getArticleDataCorrect(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getArticleNotExistError(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getArticleListAllAttachments(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getAuthorsArticlesFromOnlyOneAuthor(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getAuthorsArticlesNoArticlesError(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addAttachmentDataCorrect(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addAttachmentArticleNotExists(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addAttchmentAuthorOnly(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_addAttchmentNotAllowedExtError(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getAttachmentDataCorrect(self):
         pass
 
+    @unittest.skip("demonstrating skipping")
     def test_getAttachmentNotExists(self):
         pass
 

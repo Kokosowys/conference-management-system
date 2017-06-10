@@ -89,6 +89,20 @@ class Person(db.Model):
         person = Person.query.get(data['id'])
         return person
 
+    @staticmethod
+    def const():
+        return {'nameMinLen':3,
+        'nameMaxLen':25,
+        'surnameMinLen':3,
+        'surnameMaxLen':25,
+        'passwordMinLen':6,
+        'passwordMaxLen':32,
+        'sexMinLen':1,
+        'sexMaxLen':10,
+        'ageMin':18,
+        'ageMax':100,
+        'academicDegreeMinLen':1,
+        'academicDegreeMaxLen':8}
 
 class Article(db.Model):
     __tablename__ = 'article'
@@ -223,13 +237,45 @@ def newPerson():
     age = request.json.get('age')
     academicDegree = request.json.get('academicDegree')
 
+    errorMsg = ""
+
     if name is None or password is None:
-        return (jsonify({"Error":"Missing name or password"}),
+        errorMsg += "Missing name or password. "
+
+    if name and not Person.const()['nameMinLen'] <= \
+        len(name) <= Person.const()['nameMaxLen']:
+        errorMsg += "Name length must be between {} and {}".format(
+            Person.const()['nameMinLen'], Person.const()['nameMaxLen'])
+
+    if surname and not Person.const()['surnameMinLen'] <= \
+        len(surname) <= Person.const()['surnameMaxLen']:
+        errorMsg += "Surname length must be between {} and {}".format(
+            Person.const()['surnameMinLen'], Person.const()['surnameMaxLen'])
+
+    if password and not Person.const()['passwordMinLen'] <= \
+        len(password) <= Person.const()['passwordMaxLen']:
+        errorMsg += "Password length must be between {} and {}".format(
+            Person.const()['passwordMinLen'], Person.const()['passwordMaxLen'])
+
+    if sex and not Person.const()['sexMinLen'] <= \
+        len(sex) <= Person.const()['sexMaxLen']:
+        errorMsg += "Sex length must be between {} and {}".format(
+            Person.const()['sexMinLen'], Person.const()['sexMaxLen'])
+
+    if academicDegree and not Person.const()['academicDegreeMinLen'] <= \
+        len(academicDegree) <= Person.const()['academicDegreeMaxLen']:
+        errorMsg += "AcademicDegree length must be between {} and {}".format(
+            Person.const()['academicDegreeMinLen'], Person.const()['academicDegreeMaxLen'])
+
+    if age and (type(age) != int or not Person.const()['ageMin'] <= \
+        age <= Person.const()['ageMax']):
+        errorMsg += "Age must be between {} and {}".format(
+            Person.const()['ageMin'], Person.const()['ageMax'])
+
+    if errorMsg:
+        return (jsonify({"Error":errorMsg}),
             400)
 
-    if Person.query.filter_by(name=name).first() is not None:
-        return (jsonify({"Error":"provided name '{}' already exist.".format(name)}),
-            400)
 
     person = Person(name=name, surname=surname, sex=sex, age=age,
         academicDegree=academicDegree)
