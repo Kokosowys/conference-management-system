@@ -174,24 +174,26 @@ def allowed_file(filename):
 import sys
 @app.route('/api/token/validate', methods=['GET'])
 def validateAuthToken():
-    print >> sys.stderr, "request.data {}".format(request.data)
-    print >> sys.stderr, "request.args {}".format(request.args)
-    print >> sys.stderr, "request.form {}".format(request.form)
-    print >> sys.stderr, "request.values {}".format(request.values)
-    print >> sys.stderr, "request.headers {}".format(request.headers)
+    #print >> sys.stderr, "request.data {}".format(request.data)
+    #print >> sys.stderr, "request.args {}".format(request.args)
+    ##print >> sys.stderr, "request.form {}".format(request.form)
+    #print >> sys.stderr, "request.values {}".format(request.values)
+    #print >> sys.stderr, "request.headers {}".format(request.headers)
     # print >> sys.stderr, "request.json {}".format(request.json)
     # print >> sys.stderr, "request.getjson {}".format(request.get_json())
     printOut = (jsonify({'tokenValidation': False,
-        'info': 'got following data',
-        "request.data": "type:{}, repr:{}".format(type(request.data), request.data),
+        'token': '{}'.format(request.args.get('token')),
         "request.args": "type:{}, repr:{}".format(type(request.args), request.args),
+        "request.data": "type:{}, repr:{}".format(type(request.data), request.data),
+        "request.cookie": "type:{}, repr:{}".format(type(request.cookies), request.cookies),
         "request.form": "type:{}, repr:{}".format(type(request.form), request.form),
         "request.values": "type:{}, repr:{}".format(type(request.values), request.values),
-        "request.headers": "type:{}, repr:{}".format(type(request.headers), request.headers)}),
-        403,)
-    return printOut
+        "request.headers": "type:{}, repr:{}".format(type(request.headers), request.headers),
+	"request.json": "type:{}, repr:{}".format(type(request.json), request.json)}),
+        200,)
+    #return printOut
 
-    tokenGot = dataIn['token']
+    tokenGot = request.args['token']
     person = Person.verify_auth_token(tokenGot)
     if person:
         return jsonify({'tokenValidation': True})
