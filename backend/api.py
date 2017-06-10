@@ -241,6 +241,16 @@ def newPerson():
         201,
         {'Location': url_for('getPerson', id=person.id, _external=True)})
 
+@app.route('/api/people', methods=['GET'])
+@auth.login_required
+def getPeople():
+    peopleCursor = Person.query.all()
+    people = []
+    for person in peopleCursor:
+        people.append({'personId' : person.id,
+        'name': person.name,
+        'surname': person.surname})
+    return jsonify(people)
 
 @app.route('/api/people/<int:id>')
 @auth.login_required

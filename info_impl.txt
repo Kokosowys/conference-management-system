@@ -31,6 +31,12 @@ Dane wymiane są w formacie JSON.
 	curl -i -X POST -H "Content-Type: application/json" -d '{"name":"miguel","password":"python"}' http://127.0.0.1:5000/api/people
 
 
+* /api/people [GET]
+** <return format>: json({personId - int, name - string, surname - string})
+** Przykładowe wywołanie:
+	curl -u miguel:python  -X  GET http://127.0.0.1:5000/api/people
+
+
 * /api/people/<int:id> [GET]
 ** <return format>: json({personId - int, name - string, surname - string, sex - string, age - integer, academicDegree - string})
 ** Przykładowe wywołanie:
