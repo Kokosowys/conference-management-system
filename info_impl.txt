@@ -163,6 +163,43 @@ W aplikacji prototypowej zdefiniowano dwie role: {user, author}. Role posiadają
 (*) wynik w kontekście zalogowanego użytkownika; autentykacja na poziomie uprawnień dla pojedynczej roli ('zalogowany'). Brak roli 'Administrator'
 
 
+4. Walidacja pól w otrzymywanych danych
+Dane dotyczące rejestrowanego użytkownika, artykułu i załącznika są sprawdzane pod kątem długości znaków oraz pod kątęm zgodności z rozszerzeniem (w ostatnim przypadku). Poniżej znajduje się zestawienie ogranieczeń jakie muszą spełniać przesyłane dane. Uwaga - podane dane opisują DOPUSZCZALNE wartości graniczne. Błąd pojawia się dopiero po przekroczeniu dopuszczalnych wartości.
+
+4.1 Person
+    'nameMinLen':3, *REQUIRED*
+    'nameMaxLen':25,
+    'surnameMinLen':3, *If applied*
+    'surnameMaxLen':25,
+    'passwordMinLen':6, *REQUIRED*
+    'passwordMaxLen':32,
+    'sexMinLen':1, *If applied*
+    'sexMaxLen':10,
+    'ageMin':18, *If applied*
+    'ageMax':100,
+    'academicDegreeMinLen':1, *If applied*
+    'academicDegreeMaxLen':8
+
+4.2 Article
+    'nameMinLen':3, *REQUIRED*
+    'nameMaxLen':25,
+    'themeMinLen':3, *If applied*
+    'themeMaxLen':25,
+    'labelMinLen':3, *If applied*
+    'labelMaxLen':32,
+    'descriptionMaxLen':500,
+    'textMaxLen':10000
+
+4.3 Attachment
+Allowed extentions:
+	'txt'
+	'pdf'
+	'png'
+	'jpg'
+	'jpeg'
+	'gif'
+
+
 REST Api TODO:
 * Zarządzanie rolami - wprowadznie ograniczenia dla roli Author, zmiana ról
 
