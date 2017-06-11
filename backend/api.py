@@ -111,7 +111,7 @@ class Article(db.Model):
     theme = db.Column(db.String(32))
     label = db.Column(db.String(32))
     description = db.Column(db.String(500))
-    text = db.Column(db.String(1024))
+    text = db.Column(db.String(10000))
     personId = db.Column(
         db.Integer,
         db.ForeignKey('person.id', ondelete='CASCADE'),
@@ -119,6 +119,17 @@ class Article(db.Model):
     )
     person = relationship('Person', backref='articles')
     # attchments are assigned by articleId in attchment obj
+
+    @staticmethod
+    def const():
+        return {'nameMinLen':3,
+        'nameMaxLen':25,
+        'themeMinLen':3,
+        'themeMaxLen':25,
+        'labelMinLen':3,
+        'labelMaxLen':32,
+        'descriptionMaxLen':500,
+        'textMaxLen':10000}
 
 class Attachment(db.Model):
     __tablename__ = 'attachment'
@@ -244,32 +255,32 @@ def newPerson():
 
     if name and not Person.const()['nameMinLen'] <= \
         len(name) <= Person.const()['nameMaxLen']:
-        errorMsg += "Name length must be between {} and {}".format(
+        errorMsg += "Name length must be between {} and {}. ".format(
             Person.const()['nameMinLen'], Person.const()['nameMaxLen'])
 
     if surname and not Person.const()['surnameMinLen'] <= \
         len(surname) <= Person.const()['surnameMaxLen']:
-        errorMsg += "Surname length must be between {} and {}".format(
+        errorMsg += "Surname length must be between {} and {}. ".format(
             Person.const()['surnameMinLen'], Person.const()['surnameMaxLen'])
 
     if password and not Person.const()['passwordMinLen'] <= \
         len(password) <= Person.const()['passwordMaxLen']:
-        errorMsg += "Password length must be between {} and {}".format(
+        errorMsg += "Password length must be between {} and {}. ".format(
             Person.const()['passwordMinLen'], Person.const()['passwordMaxLen'])
 
     if sex and not Person.const()['sexMinLen'] <= \
         len(sex) <= Person.const()['sexMaxLen']:
-        errorMsg += "Sex length must be between {} and {}".format(
+        errorMsg += "Sex length must be between {} and {}. ".format(
             Person.const()['sexMinLen'], Person.const()['sexMaxLen'])
 
     if academicDegree and not Person.const()['academicDegreeMinLen'] <= \
         len(academicDegree) <= Person.const()['academicDegreeMaxLen']:
-        errorMsg += "AcademicDegree length must be between {} and {}".format(
+        errorMsg += "AcademicDegree length must be between {} and {}. ".format(
             Person.const()['academicDegreeMinLen'], Person.const()['academicDegreeMaxLen'])
 
     if age and (type(age) != int or not Person.const()['ageMin'] <= \
         age <= Person.const()['ageMax']):
-        errorMsg += "Age must be between {} and {}".format(
+        errorMsg += "Age must be between {} and {}. ".format(
             Person.const()['ageMin'], Person.const()['ageMax'])
 
     if errorMsg:
@@ -303,7 +314,8 @@ def getPeople():
 def getPerson(id):
     person = Person.query.get(id)
     if not person:
-        abort(400)
+        return (jsonify({'Error': 'Person with id {} not exists'.format(id)}),
+            400)
     return jsonify({'personId' : person.id,
         'name': person.name,
         'surname': person.surname,
@@ -319,8 +331,40 @@ def newArticle():
     label = request.json.get('label')
     description = request.json.get('description')
     text = request.json.get('text')
+
+    errorMsg = ""
+
     if name is None:
-        abort(400)
+        errorMsg += "Missing name. "
+
+    if name and not Article.const()['nameMinLen'] <= \
+        len(name) <= Article.const()['nameMaxLen']:
+        errorMsg += "name length must be between {} and {}. ".format(
+            Article.const()['nameMinLen'], Article.const()['nameMaxLen'])
+
+    if theme and not Article.const()['themeMinLen'] <= \
+        len(theme) <= Article.const()['themeMaxLen']:
+        errorMsg += "theme length must be between {} and {}. ".format(
+            Article.const()['themeMinLen'], Article.const()['themeMaxLen'])
+
+    if label and not Article.const()['labelMinLen'] <= \
+        len(label) <= Article.const()['labelMaxLen']:
+        errorMsg += "label length must be between {} and {}. ".format(
+            Article.const()['labelMinLen'], Article.const()['labelMaxLen'])
+
+    if description and not len(description) <= \
+        Article.const()['descriptionMaxLen']:
+        errorMsg += "description length must be less or equal to {}. ".format(
+            Article.const()['descriptionMaxLen'])
+
+    if text and not len(text) <= \
+        Article.const()['textMaxLen']:
+        errorMsg += "text length must be less or equal to {}. ".format(
+            Article.const()['textMaxLen'])
+
+    if errorMsg:
+        return (jsonify({"Error":errorMsg}),
+            400)
 
     loggedPerson = g.person
     article = Article(name=name, theme=theme, label=label,
@@ -337,7 +381,8 @@ def newArticle():
 def getArticle(id):
     article = Article.query.get(id)
     if not article:
-        abort(400)
+        return (jsonify({'Error': 'Article with id {} not exists'.format(id)}),
+            400)
 
     attachmentsNames = [{'attachmentId':a.id, 'name':a.name} for a in article.
         attachments]
@@ -352,12 +397,7 @@ def getArticle(id):
 
 @app.route('/api/articles/author/<int:id>', methods=['GET'])
 @auth.login_required
-#todo - access for author only
 def getAuthorsArticlesNames(id):
-    #todo - check if id == loggedPerson.if only if role == author
-    loggedPerson = g.person
-    if not id==loggedPerson.id:
-        abort(400)
     articles = Article.query.filter_by(personId = id)
     articlesNames = [{'articleId':a.id, 'name':a.name} for a in articles]
     return jsonify(articlesNames)
@@ -368,7 +408,19 @@ def getAuthorsArticlesNames(id):
 def newAttachment(articleId):
     file = request.files['file']
     if not file or not allowed_file(file.filename):
-        abort(400)
+        return (jsonify({'Error': 'Wrong extention of file {}'.format(file.filename)}),
+            400)
+
+    article = Article.query.get(articleId)
+    if not article:
+        return (jsonify({'Error': 'Article with id {} not exists'.format(articleId)}),
+            400)
+
+    if g.person.id != article.personId:
+        return (jsonify({'Error': 'You are not authorised to upload \
+            attachment to article {artId}. Only author of that article \
+            can add attachments to it.'.format(artId=articleId)}),
+            403)
 
     filename = file.filename
     filenameSafe = secure_filename(filename)
@@ -389,8 +441,10 @@ def newAttachment(articleId):
 def getAttachment(attachmentId):
     attachment = Attachment.query.get(attachmentId)
     if not attachment:
-        print 'no such attachment'
-        abort(400)
+        return (jsonify({'Error': 'Attachment with id {} \
+            not exists'.format(attachmentId)}),
+            400)
+
     filename = attachment.name
     return send_from_directory(app.config['UPLOAD_FOLDER'],
                                filename)
