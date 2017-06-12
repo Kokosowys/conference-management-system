@@ -1,14 +1,14 @@
 import React from 'react';
 import axios from 'axios';
+import AddPaperForm from './addPaperForm'
 
 class AddPaper extends React.Component {
     state = {
         formHasErrors: false,
-        paperAdded: false,
         error: ""
     }
     handleSubmit = (event) => {
-        console.log("validating...");
+        //console.log("validating...");
         event.preventDefault();
         if (!this.props.userTokenValid) {
             this.formErrors(true);
@@ -19,7 +19,7 @@ class AddPaper extends React.Component {
             return
         }
         if (this.handleValidation(event.target)) {
-            console.log("validated");
+            //console.log("validated");
             this.formErrors(false);
             this.setState({
                 error: "You have errors in your form"
@@ -36,15 +36,16 @@ class AddPaper extends React.Component {
                 method: 'post',
                 url: this.props.apiPath+'/api/articles',
                 headers: {
+                    'Content-Type': 'application/json',
                     'token': this.state.userToken,
                     'Authorization': `Basic ${hash}`
                 },
                 data: JSON.stringify(userData)
             }).then((response) => {
-                if( response.articleId ) {
+                if( response.data.articleId ) {
                     this.handlePaperAdded();
                 }
-                console.log(response);
+                console.log(response.data.articleId);
             })
         } else {
             document.body.scrollTop = 0;
@@ -54,14 +55,19 @@ class AddPaper extends React.Component {
         return true;
     }
     handlePaperAdded = () => {
-        this.setState({
-            paperAdded: true
-        })
+        this.props.handleAddNewPaper(true);
     }
     formErrors = (has) => {
         this.setState({
             formHasErrors: has
         })
+    }
+    shouldComponentUpdate = () => {
+        if (this.props.paperAdded) {
+            this.props.handleAddNewPaper(false);
+            return true
+        }
+        return false
     }
     render() {
         const errorsStyle = {
@@ -70,45 +76,30 @@ class AddPaper extends React.Component {
             background: "red",
             color: "#FFF"
         }
+        
+        const style={
+            marginLeft: '25%',
+            marginRight: '25%',
+            textAlign: 'left'
+        }
         var errors = null;
         var content = null;
         if (this.state.formHasErrors) {
             errors = <div style={errorsStyle}><p>{this.state.error}</p></div>
         }
-        if (this.state.paperAdded) {
+        if (this.props.paperAdded) {
             content = <div>Your paper has been sucessfully added</div>
         } else {
-            content = <form onSubmit={this.handleSubmit}>
-                <label htmlFor="userName">Name:</label><br/>
-                <input type="text" id="userName" name="name" required />
-                <br/>
-                <label htmlFor="theme">Theme:</label><br/>
-                <input type="text" id="theme" name="theme" required />
-                <br/>
-                <label htmlFor="label">Label:</label><br/>
-                <input type="text" id="label" name="label" required />
-                <br/>
-                <label htmlFor="description" required>Description:</label><br/>
-                <textarea id="description" name="description" ></textarea>
-                <br/>
-                <label htmlFor="text" required>Text:</label><br/>
-                <textarea id="text" name="text" ></textarea>
-                <br/><br/>
-                <input type="submit"/>
-                </form>
+            content = <AddPaperForm handleSubmit={this.handleSubmit} />
         }
         return (
             <div className="userDiv">
-            <div style={{
-                marginLeft: '25%',
-                marginRight: '25%',
-                textAlign: 'left'
-            }}>
-                {errors}
-                <br/>
-                {content}
-            </div>
-            <br/><br/>
+                <div style={style}>
+                    {errors}
+                    <br/>
+                    {content}
+                </div>
+                <br/><br/>
             </div>
             
         )

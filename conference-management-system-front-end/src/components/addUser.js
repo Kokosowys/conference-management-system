@@ -4,10 +4,11 @@ import hash from 'object-hash';
 
 class AddUser extends React.Component {
     state = {
-        formHasErrors: false
+        formHasErrors: false,
+        userAdded: false
     }
     handleSubmit = (event) => {
-        console.log("validating...");
+        //console.log("validating...");
         event.preventDefault();
         if (this.handleValidation(event.target)) {
             console.log("validated");
@@ -20,20 +21,23 @@ class AddUser extends React.Component {
                 userData[name] = value;
             }
             delete userData.password2;
-            userData.password = hash.sha1(userData.password);
+            userData.password = hash.sha1(userData.password).substring(0,32);
+            userData.age = Number(userData.age)
             console.log(JSON.stringify(userData));
             axios({
                 method: 'post',
                 url: this.props.apiPath+'/api/people',
-                withCredentials: true,
                 headers: {
-                    'Access-Control-Allow-Origin': true,
-                    'Content-Type': 'application/json',
-                    'withCredentials':true
+                    'Access-Control-Allow-Origin':'*',
+                    'Content-Type': 'application/json'
                 },
                 data: JSON.stringify(userData)
             }).then((response) => {
                 console.log(response);
+                this.setState({
+                    formHasErrors: false,
+                    userAdded: true
+                })
             })
         } else {
             document.body.scrollTop = 0;
@@ -42,20 +46,20 @@ class AddUser extends React.Component {
     handleValidation = (t) => {
         if (!this.validatePassword(t.password.value, t.password2.value)) {
             this.formErrors(true);
-            console.log(this.state);
+            //console.log(this.state);
             return false;
         }
         console.log(t)
         if (!this.validateAge(t.age.value)) {
             this.formErrors(true);
-            console.log(this.state);
+            //console.log(this.state);
             return false;
         }
         if (!this.validateSex(t.sex.value)) {
             this.formErrors(true);
             return false;
         }
-        if (!this.validateAcademicDegree(t.academic_degree.value)) {
+        if (!this.validateAcademicDegree(t.academicDegree.value)) {
             this.formErrors(true);
             return false;
         }
@@ -89,19 +93,13 @@ class AddUser extends React.Component {
             background: "red",
             color: "#FFF"
         }
+        var content = null;
         var errors = null;
         if (this.state.formHasErrors) {
             errors = <div style={errorsStyle}><p>You have errors in your form</p></div>
         }
-        return (
-            <div className="userDiv">
-            <div style={{
-                marginLeft: '25%',
-                marginRight: '25%',
-                textAlign: 'left'
-            }}>
-                {errors}
-                <form onSubmit={this.handleSubmit}>
+        if (!this.state.userAdded) {
+            content = <form onSubmit={this.handleSubmit}>
                 <label htmlFor="userName">Name:</label><br/>
                 <input type="text" id="userName" name="name" required />
                 <br/>
@@ -124,8 +122,8 @@ class AddUser extends React.Component {
                 <label htmlFor="age" required>Age:</label><br/>
                 <input type="number" id="age" name="age" />
                     <br/>
-                <label htmlFor="academic_degree">Academic degree:</label><br/>
-                <select id="academic_degree" name="academic_degree">
+                <label htmlFor="academicDegree">Academic degree:</label><br/>
+                <select id="academicDegree" name="academicDegree">
                     <option defaultValue="0" >choose Academic degree</option>
                     <option value="BSc">BSc</option>
                     <option value="MSc">MSc</option>
@@ -141,6 +139,19 @@ class AddUser extends React.Component {
                 <br/><br/>
                 <input type="submit"/>
                 </form>
+        } else {
+            content = <div>You have sucessfully registered. Now you can log in</div>
+        }
+        return (
+            <div className="userDiv">
+            <div style={{
+                marginLeft: '25%',
+                marginRight: '25%',
+                textAlign: 'left'
+            }}>
+                {errors}
+                {content}
+                
             </div>
             <br/><br/>
             </div>
