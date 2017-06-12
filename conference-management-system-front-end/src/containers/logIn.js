@@ -10,13 +10,13 @@ class Home extends Component {
         event.preventDefault();
         if (!event.target.username.value && event.target.username.value.length < 5 && !event.target.password.value && event.target.password.value.length < 5) {
             this.formErrors(true);
-            console.log("wrong authorization values");
+            //console.log("wrong authorization values");
             return
         }
         this.formErrors(false);
         var userData = {};
         userData.name = event.target.username.value;
-        userData.password = hash.sha1(event.target.password.value);
+        userData.password = hash.sha1(event.target.password.value).substring(0,32);
         this.handleLogging(userData);
         //window.location = "/home";
     }
@@ -28,12 +28,14 @@ class Home extends Component {
                 url: this.props.apiPath+'/api/token/generate',
                 headers: {
                     'Access-Control-Allow-Origin':'*',
-                    'Accept':'*/*',
                     'Authorization': `Basic ${hash}`
                 }
             }).then((response) => {
+                this.setState({
+                    formHasErrors: false
+                })
                 //console.log(response);
-                this.props.handleLogging(response.data.token)
+                this.props.handleLogging(response.data)
             })
     }
     formErrors = (has) => {
@@ -48,9 +50,21 @@ class Home extends Component {
             background: "red",
             color: "#FFF"
         }
+        var content = null;
         var errors = null;
         if (this.state.formHasErrors) {
             errors = <div style={errorsStyle}><p>You have errors in your form</p></div>
+        }
+        if (!this.props.userTokenValid) {
+            content = <form onSubmit={this.handleSubmitLogginForm}>
+                        <label htmlFor="username">Username</label><br/>
+                        <input type="text" id="username" name="username" required/><br/>
+                        <label htmlFor="password">Password</label><br/>
+                        <input type="password" id="password" name="password" required/><br/><br/>
+                        <input type="submit" />
+                    </form>
+        } else {
+            content = <div>You have sucessfully logged in</div>
         }
         return (
             <div>
@@ -59,13 +73,8 @@ class Home extends Component {
                 </header>
                 <div>
                     {errors}
-                    <form onSubmit={this.handleSubmitLogginForm}>
-                        <label htmlFor="username">Username</label><br/>
-                        <input type="text" id="username" name="username" required/><br/>
-                        <label htmlFor="password">Password</label><br/>
-                        <input type="password" id="password" name="password" required/><br/><br/>
-                        <input type="submit" />
-                    </form>
+                    {content}
+                    
                 </div>
             </div>
         )
