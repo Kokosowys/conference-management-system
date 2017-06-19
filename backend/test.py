@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import os
 import shutil
 import unittest
@@ -7,6 +8,10 @@ import io
 import base64
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+
+from coverage import coverage
+cov = coverage(branch=True, omit=['/home/rafszt/Envs/confmansys/*', 'test.py'])
+cov.start()
 from api import app, db, Person, Article, Attachment
 
 TEST_UPLOAD_DIR = 'testuploads/'
@@ -851,4 +856,15 @@ class TestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    try:
+        print 'tests start'
+        unittest.main()
+        print 'test end'
+    except:
+        pass
+    cov.stop()
+    cov.save()
+    print "\n\nCoverage Report:\n"
+    cov.report()
+    cov.html_report(directory='tmp/coverage')
+    cov.erase()

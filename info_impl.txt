@@ -236,3 +236,5 @@ Notes:
 [REST Api in Flask unit testing]https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-vii-unit-testing
 [Continous inegration and Flask] http://bango29.com/continuous-web-development/
 [Jenkins installation] https://www.digitalocean.com/community/tutorials/how-to-install-jenkins-on-ubuntu-16-04
+[Test plan descr] http://softwaretestingfundamentals.com/test-plan/
+[Test plan descr] http://www.testerzy.pl/artykuly/dokumentacja-testowa-plan-testow
