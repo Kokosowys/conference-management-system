@@ -1,11 +1,10 @@
 import React, {Component} from 'react';
-import {BrowserRouter, Route, NavLink} from 'react-router-dom';
 import axios from 'axios';
-import PaperManage from '../components/paperManage';
 
 class Papers extends Component {
     state = {
-        article: {}
+        article: {},
+        attachments: []
     }
     getProps = () => {
         return this.props.location.params;
@@ -22,17 +21,20 @@ class Papers extends Component {
                 console.log(response);
                 var attachments = [];
                 if ( response.data.attachments.length > 0 ) {
-                    for ( let attachment in response.data.attachments ) {
-                        this.getAttachment(attachment.attachmentId);
-                    }
+                    response.data.attachments.forEach((item) => {
+                       attachments.push( this.getAttachment(item.attachmentId) );
+                    })
+                        
+                    
                 }
                 this.setState({
-                    article: response.data
+                    article: response.data,
+                    attachments: attachments
                 })
             })
     }
     getAttachment = (attachmentId) => {
-        const hash = new Buffer(`${this.getProps().userToken}:anything`).toString('base64')
+        const hash = new Buffer(`${this.getProps().userToken}:anything`).toString('base64');
         axios({
                 method: 'GET',
                 url: this.getProps().apiPath+'/api/articles/attachments/'+attachmentId,
@@ -41,29 +43,33 @@ class Papers extends Component {
                 }
             }).then((response) => {
                 console.log(response);
-                //return response.data;
+                return response.data;
             })
     }
     postAttachment = (attachment) => {
         console.log(attachment);
+        var datas = new FormData();
+        datas.append('foo', 'bar');
+        datas.append('file', attachment);
         const hash = new Buffer(`${this.getProps().userToken}:anything`).toString('base64')
         axios({
-                method: 'post',
-                url: this.getProps().apiPath+'/api/articles/'+this.getProps().articleId+'/attachments',
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Basic ${hash}`
-                },
-                data: {attachment}
-            }).then((response) => {
-                console.log(response);
+            method: 'post',
+            url: this.getProps().apiPath+'/api/articles/'+this.getProps().articleId+'/attachments',
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Basic ${hash}`
+            },
+            data: datas
+        }).then((response) => {
+            console.log(response);
+            this.getArticleData();
             return true;
-            });
+        });
         return false;
     }
     handleFileUpload = (event) => {
         event.preventDefault();
-        this.postAttachment(event.target[0].files[0]) ? event.target.reset : "";
+        this.postAttachment(event.target[0].files[0])
     }
     componentWillMount = () => {
         this.componentWillReceiveProps();
@@ -73,11 +79,12 @@ class Papers extends Component {
         this.getArticleData();
     }
     render() {
+        //console.log(this.state.attachments);
         var attachments="";
         if (this.state.article.attachments) {
             attachments = <div>
-                    {this.state.article.attachments.map( attachment => <div>   
-                        <p onClick={this.getAttachment(attachment.attachmentId)}>{attachment.attachmentId}</p>              
+                    {this.state.article.attachments.map( attachment => <div key={attachment.attachmentId}>   
+                        <div><a href={ this.getProps().apiPath+'/api/articles/attachments/'+attachment.attachmentId}>{attachment.name}</a></div>              
                     </div>)}
                 </div>
         }

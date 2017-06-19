@@ -17,6 +17,7 @@ class Home extends Component {
         var userData = {};
         userData.name = event.target.username.value;
         userData.password = hash.sha1(event.target.password.value).substring(0,32);
+        console.log(userData.password);
         this.handleLogging(userData);
         //window.location = "/home";
     }

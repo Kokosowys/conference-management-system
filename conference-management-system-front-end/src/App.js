@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import {BrowserRouter, Route, NavLink} from 'react-router-dom';
-import { Redirect } from 'react-router';
 import logo from './logo.svg';
 import './App.css';
 import Account from './containers/account';
@@ -10,7 +9,6 @@ import ContactForm from './containers/contactForm';
 import LogIn from './containers/logIn';
 import AddUser from './components/addUser';
 import axios from 'axios';
-import axiosMethodOverride from 'axios-method-override';
 
 class App extends Component {
     state = {
@@ -56,8 +54,6 @@ class App extends Component {
                     isLoggingScreen: true
                 });
             };
-        }).then( () => {
-            window.history.pushState
         })
 
     }
@@ -130,7 +126,9 @@ class App extends Component {
       <div className="App">
         <div className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h2>This site is based on React! &lt;3</h2>
+          <h2>Conference Management System</h2>
+            <p>by Marcin Kokoszka & Rafał Sztandera</p>
+            <br/>
         </div>
         <BrowserRouter>
             <div>

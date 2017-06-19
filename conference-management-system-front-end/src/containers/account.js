@@ -4,7 +4,6 @@ import axios from 'axios';
 import User from '../components/user';
 import AddPaper from '../components/addPaper';
 import Papers from '../components/papers';
-import PaperManage from '../components/paperManage';
 
 class Account extends Component {
     state = {
