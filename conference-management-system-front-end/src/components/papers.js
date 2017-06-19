@@ -18,7 +18,7 @@ class Papers extends Component {
                     'Authorization': `Basic ${hash}`
                 }
             }).then((response) => {
-                console.log(response);
+                //console.log(response);
                 var attachments = [];
                 if ( response.data.attachments.length > 0 ) {
                     response.data.attachments.forEach((item) => {
@@ -42,12 +42,12 @@ class Papers extends Component {
                     'Authorization': `Basic ${hash}`
                 }
             }).then((response) => {
-                console.log(response);
+                //console.log(response);
                 return response.data;
             })
     }
     postAttachment = (attachment) => {
-        console.log(attachment);
+        //console.log(attachment);
         var datas = new FormData();
         datas.append('foo', 'bar');
         datas.append('file', attachment);
@@ -61,7 +61,7 @@ class Papers extends Component {
             },
             data: datas
         }).then((response) => {
-            console.log(response);
+            //console.log(response);
             this.getArticleData();
             return true;
         });
@@ -84,7 +84,7 @@ class Papers extends Component {
         if (this.state.article.attachments) {
             attachments = <div>
                     {this.state.article.attachments.map( attachment => <div key={attachment.attachmentId}>   
-                        <div><a href={ this.getProps().apiPath+'/api/articles/attachments/'+attachment.attachmentId}>{attachment.name}</a></div>              
+                        <div><a href={ this.getProps().apiPath+'/api/articles/attachments/'+attachment.attachmentId} target="blank">{attachment.name}</a></div>              
                     </div>)}
                 </div>
         }
