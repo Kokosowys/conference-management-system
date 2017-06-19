@@ -1,55 +1,66 @@
 import React, { Component } from 'react';
-import {BrowserRouter, Route, NavLink} from 'react-router-dom'
+import {BrowserRouter, Route, NavLink} from 'react-router-dom';
 import logo from './logo.svg';
 import './App.css';
-import Users from './containers/users';
+import Account from './containers/account';
 import Products from './containers/products';
 import Home from './containers/home';
 import ContactForm from './containers/contactForm';
 import LogIn from './containers/logIn';
 import AddUser from './components/addUser';
 import axios from 'axios';
-import axiosMethodOverride from 'axios-method-override';
 
 class App extends Component {
     state = {
         userTokenValid: false,
         userToken: window.localStorage.userToken,
+        personId: -1,
         isLoggingScreen: false,
         apiPath: "http://skt-site.com:5000"
     }
-    handleValidateToken = (tokenz) => {
-        const hash = new Buffer(`token:${tokenz}`).toString('base64');
-        var tokenJSON = {token:tokenz};
+    handleValidateToken = (userData) => {
         axios({
-            method: 'get',
+            method: 'GET',
             url: this.state.apiPath+'/api/token/validate',
-            params: tokenJSON
+            params: {
+                token: userData.token
+            }
         }).then( (response) => {
             //console.log(response);
-            if (response.data.tokenValidation) { 
-                this.setState({
-                    userTokenValid: true,
-                    userToken: tokenz
-                });
-                window.localStorage.setItem("userToken", tokenz);
+            if (response.data.tokenValidation) {
+                window.localStorage.setItem("userToken", userData.token);
+                if (this.state.isLoggingScreen) {
+                    this.setState({
+                        userTokenValid: true,
+                        userToken: userData.token,
+                        isLoggingScreen: false,
+                        personId: userData.personId
+                    });
+                    
+                } else {
+                    this.setState({
+                        userTokenValid: true,
+                        userToken: userData.token,
+                        isLoggingScreen: false
+                    });
+                }
+                
+                //browserHistory.push('/home');
             } else {
+                window.localStorage.setItem("userToken", null);
                 this.setState({
                     userTokenValid: false,
-                    userToken: null
-                })
-                window.localStorage.setItem("userToken", null)
+                    userToken: null,
+                    isLoggingScreen: true
+                });
             };
         })
 
     }
-    handleLogging = (token) => {
+    handleLogging = (userData) => {
         //console.log(token);
-        this.handleValidateToken(token);
-        if (this.state.isLoggingScreen) {
-            this.setState({
-                isLoggingScreen:false
-            });
+        if (userData.token) {
+            this.handleValidateToken(userData);
         }
     }
     handleIsUserLogged = () => {
@@ -115,7 +126,9 @@ class App extends Component {
       <div className="App">
         <div className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <h2>This site is based on React! &lt;3</h2>
+          <h2>Conference Management System</h2>
+            <p>by Marcin Kokoszka & Rafał Sztandera</p>
+            <br/>
         </div>
         <BrowserRouter>
             <div>
@@ -123,10 +136,10 @@ class App extends Component {
                 
                 <div>
                     <Route path='/register' component={() => <AddUser apiPath={this.state.apiPath}/>} />
-                    <Route path='/logIn' component={() => <LogIn handleLogging={this.handleLogging} apiPath={this.state.apiPath}/>} />
+                    <Route path='/logIn' component={() => <LogIn handleLogging={this.handleLogging} apiPath={this.state.apiPath} userTokenValid={this.state.userTokenValid}/>} />
                     <Route path='/home' component={Home} />
                     <Route path='/products' component={Products} />
-                    <Route path='/users' component={() => (<Users apiPath={this.state.apiPath} userToken={this.state.userToken} userTokenValid={this.state.userTokenValid} />)}/>
+                    <Route path='/users' exact component={() => (<Account apiPath={this.state.apiPath} userToken={this.state.userToken} userTokenValid={this.state.userTokenValid} personId={this.state.personId}/>)}/>
                     <Route path='/contactForm' component={ContactForm} />
                 </div>
             </div>

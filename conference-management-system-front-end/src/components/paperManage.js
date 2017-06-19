@@ -1,6 +1,6 @@
 import React from 'react';
 
-class User extends React.Component {
+class PaperManage extends React.Component {
     
     render() {
         //var item = this.props.item;
@@ -8,7 +8,7 @@ class User extends React.Component {
         return (
             <div className="userDiv">
             <div>
-                <p>Your account id is: {this.props.personId}</p>
+                <p>this is your paper</p>
             </div>
             <br/><br/>
             </div>
@@ -16,6 +16,5 @@ class User extends React.Component {
         )
     }
 };
-//6338420f34c0897c90fd2d5bb97d9f44
 
-export default User;
+export default PaperManage;
